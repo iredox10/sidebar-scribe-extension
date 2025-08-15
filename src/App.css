@@ -143,61 +143,39 @@
   background-color: #ecf0f1;
 }
 
-.show-creation-panel {
-  padding: 8px 15px;
-  background: none;
-  border: none;
-  border-bottom: 1px solid #eee;
-  color: #3498db;
-  cursor: pointer;
-  font-size: 0.9rem;
+.sidebar-actions {
   display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.show-creation-panel:hover {
-  background-color: #f8f9fa;
-}
-
-.creation-panel {
+  flex-direction: column;
   padding: 10px 15px;
+  gap: 8px;
   border-bottom: 1px solid #eee;
 }
 
-.input-group {
-  display: flex;
-  gap: 5px;
-  margin-bottom: 8px;
-}
-
-.input-group:last-child {
-  margin-bottom: 0;
-}
-
-.creation-input {
-  padding: 6px 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  flex: 1;
-  font-size: 0.9rem;
-}
-
-.icon-button {
-  padding: 6px;
-  background-color: #27ae60;
-  color: white;
-  border: none;
+.create-folder-btn, .create-note-btn {
+  padding: 8px;
+  background-color: #f8f9fa;
+  color: #3498db;
+  border: 1px solid #dee2e6;
   border-radius: 4px;
   cursor: pointer;
+  font-size: 0.9rem;
   display: flex;
   align-items: center;
-  justify-content: center;
-  min-width: 30px;
+  gap: 8px;
+  transition: all 0.2s;
 }
 
-.icon-button:hover {
-  background-color: #219653;
+.create-folder-btn:hover, .create-note-btn:hover {
+  background-color: #e9ecef;
+  border-color: #3498db;
+}
+
+.create-folder-btn {
+  color: #f39c12;
+}
+
+.create-folder-btn:hover {
+  border-color: #f39c12;
 }
 
 .file-explorer {
@@ -210,12 +188,36 @@
   margin-bottom: 15px;
 }
 
-.explorer-section h3 {
-  margin: 0 0 8px 0;
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.section-header h3 {
+  margin: 0;
   font-size: 0.9rem;
   color: #2c3e50;
-  padding-bottom: 3px;
-  border-bottom: 1px solid #eee;
+}
+
+.add-folder-btn {
+  background: none;
+  border: none;
+  color: #7f8c8d;
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 3px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+}
+
+.add-folder-btn:hover {
+  background-color: #ecf0f1;
+  color: #3498db;
 }
 
 .folder {

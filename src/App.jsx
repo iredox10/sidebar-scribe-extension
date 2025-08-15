@@ -26,8 +26,6 @@ function App() {
   const [folders, setFolders] = useState([]);
   const [selectedNote, setSelectedNote] = useState(null);
   const [showSidebar, setShowSidebar] = useState(false);
-  const [newFolderName, setNewFolderName] = useState('');
-  const [newNoteName, setNewNoteName] = useState('');
   const [expandedFolders, setExpandedFolders] = useState(new Set());
   const [editingNoteId, setEditingNoteId] = useState(null);
   const [editingNoteName, setEditingNoteName] = useState('');
@@ -35,8 +33,9 @@ function App() {
   const [editingFolderName, setEditingFolderName] = useState('');
   const [view, setView] = useState('main'); // 'main' or 'settings'
   const [settings, setSettings] = useState({ defaultFolder: '' });
-  const [showCreationPanel, setShowCreationPanel] = useState(false);
   const [noteContent, setNoteContent] = useState('');
+  const [newlyCreatedFolderId, setNewlyCreatedFolderId] = useState(null);
+  const [newlyCreatedNoteId, setNewlyCreatedNoteId] = useState(null);
 
   // Load data from chrome.storage.local on component mount
   useEffect(() => {
@@ -96,40 +95,65 @@ function App() {
     }
   }, [selectedNote]);
 
+  // Focus on newly created folder for renaming
+  useEffect(() => {
+    if (newlyCreatedFolderId) {
+      setEditingFolderId(newlyCreatedFolderId);
+      const newFolder = folders.find(folder => folder.id === newlyCreatedFolderId);
+      if (newFolder) {
+        setEditingFolderName(newFolder.name);
+      }
+      setNewlyCreatedFolderId(null);
+    }
+  }, [folders, newlyCreatedFolderId]);
+
+  // Focus on newly created note for renaming
+  useEffect(() => {
+    if (newlyCreatedNoteId) {
+      setEditingNoteId(newlyCreatedNoteId);
+      const newNote = notes.find(note => note.id === newlyCreatedNoteId);
+      if (newNote) {
+        setEditingNoteName(newNote.name);
+      }
+      setNewlyCreatedNoteId(null);
+    }
+  }, [notes, newlyCreatedNoteId]);
+
   const handleCreateFolder = () => {
-    if (!newFolderName.trim()) return;
+    const timestamp = new Date().toLocaleString();
+    const folderName = `New Folder - ${timestamp}`;
     
-    const updatedFolders = createFolder(folders, newFolderName);
-    setFolders(updatedFolders);
-    setNewFolderName('');
-    setShowCreationPanel(false);
+    const newFolder = {
+      id: Date.now().toString(),
+      name: folderName,
+      createdAt: new Date().toISOString()
+    };
+    
+    setFolders([...folders, newFolder]);
+    setNewlyCreatedFolderId(newFolder.id);
   };
 
   const handleCreateNote = (folderId = null) => {
-    if (!newNoteName.trim()) {
-      // If no name provided, create with default name
-      const defaultName = `Note ${new Date().toLocaleString()}`;
-      const targetFolderId = folderId || settings.defaultFolder || null;
-      const updatedNotes = createNote(notes, defaultName, targetFolderId);
-      setNotes(updatedNotes);
-      
-      // Auto-select the newly created note
-      const newNote = updatedNotes[updatedNotes.length - 1];
-      setSelectedNote(newNote);
-      setNoteContent(newNote.content || '');
-    } else {
-      const targetFolderId = folderId || settings.defaultFolder || null;
-      const updatedNotes = createNote(notes, newNoteName, targetFolderId);
-      setNotes(updatedNotes);
-      
-      // Auto-select the newly created note
-      const newNote = updatedNotes[updatedNotes.length - 1];
-      setSelectedNote(newNote);
-      setNoteContent(newNote.content || '');
-      setNewNoteName('');
-    }
+    const timestamp = new Date().toLocaleString();
+    const noteName = `New Note - ${timestamp}`;
     
-    setShowCreationPanel(false);
+    const targetFolderId = folderId || settings.defaultFolder || null;
+    
+    const newNote = {
+      id: Date.now().toString(),
+      name: noteName,
+      content: '',
+      folderId: targetFolderId,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    
+    setNotes([...notes, newNote]);
+    
+    // Auto-select the newly created note
+    setSelectedNote(newNote);
+    setNoteContent(newNote.content || '');
+    setNewlyCreatedNoteId(newNote.id);
     setShowSidebar(false);
   };
 
@@ -268,16 +292,7 @@ function App() {
   };
 
   const quickCreateNote = () => {
-    const noteName = `Note ${new Date().toLocaleString()}`;
-    const targetFolderId = settings.defaultFolder || null;
-    const updatedNotes = createNote(notes, noteName, targetFolderId);
-    setNotes(updatedNotes);
-    
-    // Auto-select the newly created note
-    const newNote = updatedNotes[updatedNotes.length - 1];
-    setSelectedNote(newNote);
-    setNoteContent(newNote.content || '');
-    setShowSidebar(false);
+    handleCreateNote();
   };
 
   const handleNewNoteClick = () => {
@@ -342,43 +357,22 @@ function App() {
                   </button>
                 </div>
                 
-                <button 
-                  className="show-creation-panel"
-                  onClick={() => setShowCreationPanel(!showCreationPanel)}
-                >
-                  {showCreationPanel ? <FaTimes /> : <FaPlus />} 
-                  {showCreationPanel ? 'Cancel' : 'New'}
-                </button>
-                
-                {showCreationPanel && (
-                  <div className="creation-panel">
-                    <div className="input-group">
-                      <input
-                        type="text"
-                        value={newFolderName}
-                        onChange={(e) => setNewFolderName(e.target.value)}
-                        placeholder="Folder name"
-                        className="creation-input"
-                      />
-                      <button onClick={handleCreateFolder} className="icon-button" title="Create Folder">
-                        <FaFolderPlus />
-                      </button>
-                    </div>
-                    
-                    <div className="input-group">
-                      <input
-                        type="text"
-                        value={newNoteName}
-                        onChange={(e) => setNewNoteName(e.target.value)}
-                        placeholder="Note name"
-                        className="creation-input"
-                      />
-                      <button onClick={() => handleCreateNote()} className="icon-button" title="Create Note">
-                        <FaFileAlt />
-                      </button>
-                    </div>
-                  </div>
-                )}
+                <div className="sidebar-actions">
+                  <button 
+                    className="create-folder-btn"
+                    onClick={handleCreateFolder}
+                    title="Create New Folder"
+                  >
+                    <FaFolderPlus /> New Folder
+                  </button>
+                  <button 
+                    className="create-note-btn"
+                    onClick={() => handleCreateNote()}
+                    title="Create New Note"
+                  >
+                    <FaFileAlt /> New Note
+                  </button>
+                </div>
 
                 <div className="file-explorer">
                   <div className="explorer-section">
@@ -434,7 +428,16 @@ function App() {
                   </div>
 
                   <div className="explorer-section">
-                    <h3>Folders</h3>
+                    <div className="section-header">
+                      <h3>Folders</h3>
+                      <button 
+                        className="add-folder-btn"
+                        onClick={handleCreateFolder}
+                        title="Add New Folder"
+                      >
+                        <FaPlus />
+                      </button>
+                    </div>
                     {folders.map(folder => (
                       <div key={folder.id} className="folder">
                         <div 
