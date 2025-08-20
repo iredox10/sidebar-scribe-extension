@@ -63,3 +63,77 @@ export const loadAllData = async () => {
     return { success: false, error };
   }
 };
+
+// Save note to local file system
+export const saveNoteToFile = async (note, filePath = null) => {
+  try {
+    // In a real Chrome extension, we would use the chrome.fileSystem API
+    // For now, we'll create a download using the Downloads API
+    const blob = new Blob([note.content], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    
+    // Use Chrome's downloads API to save the file
+    const downloadId = await chrome.downloads.download({
+      url: url,
+      filename: `${note.name}.md`,
+      saveAs: true // Prompt user for save location
+    });
+    
+    // Clean up the object URL after a delay
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    
+    return { 
+      success: true, 
+      message: `Note "${note.name}" saved successfully`,
+      downloadId: downloadId
+    };
+  } catch (error) {
+    console.error('Error saving note to file:', error);
+    return { success: false, error: error.message || 'Failed to save note to file' };
+  }
+};
+
+// Load note from local file system
+export const loadNoteFromFile = async () => {
+  try {
+    // In a real Chrome extension, we would use the chrome.fileSystem API
+    // For now, we'll prompt the user to select a file
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.md,.txt';
+    
+    return new Promise((resolve) => {
+      input.onchange = async (event) => {
+        const file = event.target.files[0];
+        if (!file) {
+          resolve({ success: false, error: 'No file selected' });
+          return;
+        }
+        
+        try {
+          const content = await file.text();
+          const noteName = file.name.replace(/\.[^/.]+$/, ""); // Remove extension
+          
+          const newNote = {
+            id: Date.now().toString(),
+            name: noteName,
+            content: content,
+            folderId: null,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          };
+          
+          resolve({ success: true, note: newNote });
+        } catch (error) {
+          console.error('Error reading file:', error);
+          resolve({ success: false, error: error.message || 'Failed to read file' });
+        }
+      };
+      
+      input.click();
+    });
+  } catch (error) {
+    console.error('Error loading note from file:', error);
+    return { success: false, error: error.message || 'Failed to load note from file' };
+  }
+};
