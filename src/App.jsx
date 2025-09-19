@@ -39,6 +39,7 @@ function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearch, setShowSearch] = useState(false);
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
+  const [showMoreActions, setShowMoreActions] = useState(false);
   const [favorites, setFavorites] = useState(new Set());
   const [showCreationPanel, setShowCreationPanel] = useState(false);
 
@@ -388,13 +389,16 @@ function App() {
       if (showSearchDropdown && !event.target.closest('.search-container')) {
         setShowSearchDropdown(false);
       }
+      if (showMoreActions && !event.target.closest('.more-actions')) {
+        setShowMoreActions(false);
+      }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [showSearchDropdown]);
+  }, [showSearchDropdown, showMoreActions]);
 
   // Get favorite notes
   const getFavoriteNotes = () => {
@@ -471,140 +475,225 @@ function App() {
       {view === 'main' ? (
         <>
           <header className="app-header">
-            <div className="header-left">
-              <button 
-                className="menu-toggle" 
-                onClick={() => setShowSidebar(!showSidebar)}
-                title="Toggle Sidebar"
-              >
-                <FaBars />
-              </button>
-              <h1>Sidebar Note</h1>
-            </div>
-            
-            <div className="header-center">
-              {showSearch && (
-                <div className="search-container">
-                  <FaSearch className="search-icon" />
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={handleSearchChange}
-                    placeholder="Search notes..."
-                    className="search-input"
-                    autoFocus
-                  />
+            <div className="header-content">
+              {/* Compact Brand Section */}
+              <div className="brand-section">
+                <button 
+                  className="menu-toggle" 
+                  onClick={() => setShowSidebar(!showSidebar)}
+                  title="Toggle Sidebar"
+                >
+                  <FaBars />
+                </button>
+                <div className="brand-text">
+                  <span className="brand-name">Notes</span>
+                  {selectedNote && (
+                    <span className="current-note-indicator">
+                      • {selectedNote.name.length > 15 ? selectedNote.name.substring(0, 15) + '...' : selectedNote.name}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Main Actions */}
+              <div className="main-actions">
+                {/* Search Toggle/Input */}
+                {!showSearch ? (
                   <button 
-                    className="clear-search"
-                    onClick={() => {
-                      setSearchQuery('');
-                      setShowSearch(false);
-                      setShowSearchDropdown(false);
-                    }}
-                    title="Clear search"
+                    className="action-btn search-toggle" 
+                    onClick={() => setShowSearch(true)}
+                    title="Search Notes"
                   >
-                    <FaTimes />
+                    <FaSearch />
+                  </button>
+                ) : (
+                  <div className="search-container">
+                    <FaSearch className="search-icon" />
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={handleSearchChange}
+                      placeholder="Search..."
+                      className="search-input"
+                      autoFocus
+                      onBlur={() => {
+                        if (!searchQuery.trim()) {
+                          setShowSearch(false);
+                          setShowSearchDropdown(false);
+                        }
+                      }}
+                    />
+                    <button 
+                      className="clear-search"
+                      onClick={() => {
+                        setSearchQuery('');
+                        setShowSearch(false);
+                        setShowSearchDropdown(false);
+                      }}
+                      title="Close search"
+                    >
+                      <FaTimes />
+                    </button>
+                    
+                    {/* Search Results Dropdown */}
+                    {showSearchDropdown && filteredNotes().length > 0 && (
+                      <div className="search-dropdown">
+                        {filteredNotes().map(note => {
+                          const folderName = note.folderId 
+                            ? folders.find(f => f.id === note.folderId)?.name 
+                            : 'Root';
+                          
+                          return (
+                            <div
+                              key={note.id}
+                              className="search-result-item"
+                              onClick={() => handleSearchResultSelect(note)}
+                            >
+                              <div className="search-result-main">
+                                <FaFile className="search-result-icon" />
+                                <div className="search-result-content">
+                                  <div className="search-result-title">{note.name}</div>
+                                  <div className="search-result-path">in {folderName}</div>
+                                  {note.content && (
+                                    <div className="search-result-preview">
+                                      {note.content.substring(0, 60)}
+                                      {note.content.length > 60 ? '...' : ''}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                              {favorites.has(note.id) && (
+                                <FaStar className="search-result-favorite" />
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                    
+                    {/* No results message */}
+                    {showSearchDropdown && searchQuery.trim() && filteredNotes().length === 0 && (
+                      <div className="search-dropdown">
+                        <div className="search-no-results">
+                          No notes found for "{searchQuery}"
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Quick Actions Group */}
+                <div className="quick-actions-group">
+                  <button 
+                    className="action-btn new-note-btn" 
+                    onClick={handleNewNoteClick}
+                    title="New Note"
+                  >
+                    <FaFileAlt />
                   </button>
                   
-                  {/* Search Results Dropdown */}
-                  {showSearchDropdown && filteredNotes().length > 0 && (
-                    <div className="search-dropdown">
-                      {filteredNotes().map(note => {
-                        const folderName = note.folderId 
-                          ? folders.find(f => f.id === note.folderId)?.name 
-                          : 'Root';
-                        
-                        return (
-                          <div
-                            key={note.id}
-                            className="search-result-item"
-                            onClick={() => handleSearchResultSelect(note)}
-                          >
-                            <div className="search-result-main">
-                              <FaFile className="search-result-icon" />
-                              <div className="search-result-content">
-                                <div className="search-result-title">{note.name}</div>
-                                <div className="search-result-path">in {folderName}</div>
-                                {note.content && (
-                                  <div className="search-result-preview">
-                                    {note.content.substring(0, 60)}
-                                    {note.content.length > 60 ? '...' : ''}
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                            {favorites.has(note.id) && (
-                              <FaStar className="search-result-favorite" />
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
+                  {selectedNote && (
+                    <button 
+                      className={`action-btn favorite-btn ${favorites.has(selectedNote.id) ? 'favorited' : ''}`}
+                      onClick={() => toggleFavorite(selectedNote.id)}
+                      title={favorites.has(selectedNote.id) ? "Remove from favorites" : "Add to favorites"}
+                    >
+                      {favorites.has(selectedNote.id) ? <FaStar /> : <FaRegStar />}
+                    </button>
                   )}
+                </div>
+
+                {/* More Actions Dropdown */}
+                <div className="more-actions">
+                  <button 
+                    className="action-btn more-toggle"
+                    onClick={() => setShowMoreActions(!showMoreActions)}
+                    title="More Actions"
+                  >
+                    <FaCog />
+                  </button>
                   
-                  {/* No results message */}
-                  {showSearchDropdown && searchQuery.trim() && filteredNotes().length === 0 && (
-                    <div className="search-dropdown">
-                      <div className="search-no-results">
-                        No notes found for "{searchQuery}"
-                      </div>
+                  {showMoreActions && (
+                    <div className="more-dropdown">
+                      <button 
+                        className="dropdown-item theme-toggle" 
+                        onClick={() => {
+                          toggleTheme();
+                          setShowMoreActions(false);
+                        }}
+                        title={`Switch to ${settings.theme === 'light' ? 'dark' : 'light'} mode`}
+                      >
+                        {settings.theme === 'light' ? <FaMoon /> : <FaSun />}
+                        <span>Theme</span>
+                      </button>
+                      
+                      <button 
+                        className="dropdown-item" 
+                        onClick={() => {
+                          saveToLocalFile();
+                          setShowMoreActions(false);
+                        }}
+                        title="Save to file"
+                        disabled={!selectedNote}
+                      >
+                        <FaFile />
+                        <span>Save</span>
+                      </button>
+                      
+                      <button 
+                        className="dropdown-item" 
+                        onClick={() => {
+                          loadFromLocalFile();
+                          setShowMoreActions(false);
+                        }}
+                        title="Load from file"
+                      >
+                        <FaFolderOpen />
+                        <span>Load</span>
+                      </button>
+                      
+                      <div className="dropdown-divider"></div>
+                      
+                      <button 
+                        className="dropdown-item" 
+                        onClick={() => {
+                          handleSyncToGoogleDrive();
+                          setShowMoreActions(false);
+                        }}
+                        title="Sync to Google Drive"
+                      >
+                        <FaGoogleDrive />
+                        <span>Drive</span>
+                      </button>
+                      
+                      <button 
+                        className="dropdown-item" 
+                        onClick={() => {
+                          handleSyncToGitHub();
+                          setShowMoreActions(false);
+                        }}
+                        title="Sync to GitHub"
+                      >
+                        <FaGithub />
+                        <span>GitHub</span>
+                      </button>
+                      
+                      <div className="dropdown-divider"></div>
+                      
+                      <button 
+                        className="dropdown-item" 
+                        onClick={() => {
+                          setView('settings');
+                          setShowMoreActions(false);
+                        }}
+                        title="Settings"
+                      >
+                        <FaCog />
+                        <span>Settings</span>
+                      </button>
                     </div>
                   )}
                 </div>
-              )}
-            </div>
-            
-            <div className="header-right">
-              <button 
-                className="search-toggle" 
-                onClick={() => setShowSearch(!showSearch)}
-                title="Search"
-              >
-                <FaSearch />
-              </button>
-              <button 
-                className="theme-toggle" 
-                onClick={toggleTheme}
-                title={`Switch to ${settings.theme === 'light' ? 'dark' : 'light'} mode`}
-              >
-                {settings.theme === 'light' ? <FaMoon /> : <FaSun />}
-              </button>
-              <button 
-                className="save-file-btn" 
-                onClick={saveToLocalFile}
-                title="Save to file"
-                disabled={!selectedNote}
-              >
-                <FaFile />
-              </button>
-              <button 
-                className="load-file-btn" 
-                onClick={loadFromLocalFile}
-                title="Load from file"
-              >
-                <FaFolderOpen />
-              </button>
-              <button 
-                className="quick-create-btn" 
-                onClick={handleNewNoteClick}
-                title="New Note"
-              >
-                <FaFileAlt />
-              </button>
-              <button 
-                className="settings-btn" 
-                onClick={() => setView('settings')}
-                title="Settings"
-              >
-                <FaCog />
-              </button>
-              <div className="sync-buttons">
-                <button onClick={handleSyncToGoogleDrive} className="sync-btn" title="Sync to Google Drive">
-                  <FaGoogleDrive />
-                </button>
-                <button onClick={handleSyncToGitHub} className="sync-btn" title="Sync to GitHub">
-                  <FaGithub />
-                </button>
               </div>
             </div>
           </header>
