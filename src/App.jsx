@@ -38,6 +38,7 @@ function App() {
   const [noteContent, setNoteContent] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearch, setShowSearch] = useState(false);
+  const [showSearchDropdown, setShowSearchDropdown] = useState(false);
   const [favorites, setFavorites] = useState(new Set());
   const [showCreationPanel, setShowCreationPanel] = useState(false);
 
@@ -357,14 +358,43 @@ function App() {
 
   // Filter notes based on search query
   const filteredNotes = () => {
-    if (!searchQuery.trim()) return notes;
+    if (!searchQuery.trim()) return [];
     
     const query = searchQuery.toLowerCase();
     return notes.filter(note => 
       note.name.toLowerCase().includes(query) ||
       note.content.toLowerCase().includes(query)
-    );
+    ).slice(0, 8); // Limit to 8 results for dropdown
   };
+
+  // Handle search input change
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+    setShowSearchDropdown(value.trim().length > 0);
+  };
+
+  // Handle search result selection
+  const handleSearchResultSelect = (note) => {
+    handleSelectNote(note);
+    setSearchQuery('');
+    setShowSearchDropdown(false);
+    setShowSearch(false);
+  };
+
+  // Close search dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showSearchDropdown && !event.target.closest('.search-container')) {
+        setShowSearchDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showSearchDropdown]);
 
   // Get favorite notes
   const getFavoriteNotes = () => {
@@ -459,7 +489,7 @@ function App() {
                   <input
                     type="text"
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={handleSearchChange}
                     placeholder="Search notes..."
                     className="search-input"
                     autoFocus
@@ -469,11 +499,57 @@ function App() {
                     onClick={() => {
                       setSearchQuery('');
                       setShowSearch(false);
+                      setShowSearchDropdown(false);
                     }}
                     title="Clear search"
                   >
                     <FaTimes />
                   </button>
+                  
+                  {/* Search Results Dropdown */}
+                  {showSearchDropdown && filteredNotes().length > 0 && (
+                    <div className="search-dropdown">
+                      {filteredNotes().map(note => {
+                        const folderName = note.folderId 
+                          ? folders.find(f => f.id === note.folderId)?.name 
+                          : 'Root';
+                        
+                        return (
+                          <div
+                            key={note.id}
+                            className="search-result-item"
+                            onClick={() => handleSearchResultSelect(note)}
+                          >
+                            <div className="search-result-main">
+                              <FaFile className="search-result-icon" />
+                              <div className="search-result-content">
+                                <div className="search-result-title">{note.name}</div>
+                                <div className="search-result-path">in {folderName}</div>
+                                {note.content && (
+                                  <div className="search-result-preview">
+                                    {note.content.substring(0, 60)}
+                                    {note.content.length > 60 ? '...' : ''}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            {favorites.has(note.id) && (
+                              <FaStar className="search-result-favorite" />
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                  
+                  {/* No results message */}
+                  {showSearchDropdown && searchQuery.trim() && filteredNotes().length === 0 && (
+                    <div className="search-dropdown">
+                      <div className="search-no-results">
+                        No notes found for "{searchQuery}"
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -585,52 +661,8 @@ function App() {
                 )}
 
                 <div className="file-explorer">
-                  {/* Search Results */}
-                  {searchQuery && (
-                    <div className="explorer-section">
-                      <h3>Search Results</h3>
-                      <ul className="notes-list">
-                        {filteredNotes().map(note => (
-                          <li 
-                            key={note.id} 
-                            className={`note-item ${selectedNote && selectedNote.id === note.id ? 'selected' : ''}`}
-                            onClick={() => handleSelectNote(note)}
-                          >
-                            <div className="item-content">
-                              <FaFile className="item-icon" />
-                              <span className="item-name">{note.name}</span>
-                              {favorites.has(note.id) && <FaStar className="favorite-icon" />}
-                            </div>
-                            <div className="note-actions">
-                              <button 
-                                className={`favorite-btn ${favorites.has(note.id) ? 'favorited' : ''}`}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  toggleFavorite(note.id);
-                                }}
-                                title={favorites.has(note.id) ? "Remove from favorites" : "Add to favorites"}
-                              >
-                                {favorites.has(note.id) ? <FaStar /> : <FaRegStar />}
-                              </button>
-                              <button 
-                                className="delete-btn" 
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleDeleteNote(note.id);
-                                }}
-                                title="Delete Note"
-                              >
-                                <FaTrash />
-                              </button>
-                            </div>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-
                   {/* Favorites Section */}
-                  {!searchQuery && getFavoriteNotes().length > 0 && (
+                  {getFavoriteNotes().length > 0 && (
                     <div className="explorer-section">
                       <h3>Favorites</h3>
                       <ul className="notes-list">
@@ -673,134 +705,129 @@ function App() {
                   )}
 
                   {/* Recent Notes Section */}
-                  {!searchQuery && (
-                    <div className="explorer-section">
-                      <h3>Recent Notes</h3>
-                      <ul className="notes-list">
-                        {getRecentNotes().map(note => (
-                          <li 
-                            key={note.id} 
-                            className={`note-item ${selectedNote && selectedNote.id === note.id ? 'selected' : ''}`}
-                            onClick={() => handleSelectNote(note)}
-                          >
-                            <div className="item-content">
-                              <FaFile className="item-icon" />
-                              <span className="item-name">{note.name}</span>
-                              {favorites.has(note.id) && <FaStar className="favorite-icon" />}
-                            </div>
-                            <div className="note-actions">
-                              <button 
-                                className={`favorite-btn ${favorites.has(note.id) ? 'favorited' : ''}`}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  toggleFavorite(note.id);
-                                }}
-                                title={favorites.has(note.id) ? "Remove from favorites" : "Add to favorites"}
-                              >
-                                {favorites.has(note.id) ? <FaStar /> : <FaRegStar />}
-                              </button>
-                              <button 
-                                className="delete-btn" 
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleDeleteNote(note.id);
-                                }}
-                                title="Delete Note"
-                              >
-                                <FaTrash />
-                              </button>
-                            </div>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
+                  <div className="explorer-section">
+                    <h3>Recent Notes</h3>
+                    <ul className="notes-list">
+                      {getRecentNotes().map(note => (
+                        <li 
+                          key={note.id} 
+                          className={`note-item ${selectedNote && selectedNote.id === note.id ? 'selected' : ''}`}
+                          onClick={() => handleSelectNote(note)}
+                        >
+                          <div className="item-content">
+                            <FaFile className="item-icon" />
+                            <span className="item-name">{note.name}</span>
+                            {favorites.has(note.id) && <FaStar className="favorite-icon" />}
+                          </div>
+                          <div className="note-actions">
+                            <button 
+                              className={`favorite-btn ${favorites.has(note.id) ? 'favorited' : ''}`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleFavorite(note.id);
+                              }}
+                              title={favorites.has(note.id) ? "Remove from favorites" : "Add to favorites"}
+                            >
+                              {favorites.has(note.id) ? <FaStar /> : <FaRegStar />}
+                            </button>
+                            <button 
+                              className="delete-btn" 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteNote(note.id);
+                              }}
+                              title="Delete Note"
+                            >
+                              <FaTrash />
+                            </button>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
 
                   {/* Root Notes */}
-                  {!searchQuery && (
-                    <div className="explorer-section">
-                      <h3>Root Notes</h3>
-                      <ul className="notes-list">
-                        {getRootNotes(notes).map(note => (
-                          <li 
-                            key={note.id} 
-                            className={`note-item ${selectedNote && selectedNote.id === note.id ? 'selected' : ''}`}
-                            onClick={() => handleSelectNote(note)}
-                          >
-                            <div className="item-content">
-                              <FaFile className="item-icon" />
-                              {editingNoteId === note.id ? (
-                                <input
-                                  type="text"
-                                  value={editingNoteName}
-                                  onChange={(e) => setEditingNoteName(e.target.value)}
-                                  onBlur={saveNoteName}
-                                  onKeyDown={(e) => e.key === 'Enter' && saveNoteName()}
-                                  autoFocus
-                                  className="edit-input"
-                                />
-                              ) : (
-                                <>
-                                  <span className="item-name">{note.name}</span>
-                                  <button 
-                                    className="edit-name-btn" 
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      startEditingNoteName(note.id, note.name);
-                                    }}
-                                    title="Edit Note Name"
-                                  >
-                                    <FaPencilAlt />
-                                  </button>
-                                </>
-                              )}
-                            </div>
-                            <div className="note-actions">
-                              <button 
-                                className={`favorite-btn ${favorites.has(note.id) ? 'favorited' : ''}`}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  toggleFavorite(note.id);
-                                }}
-                                title={favorites.has(note.id) ? "Remove from favorites" : "Add to favorites"}
-                              >
-                                {favorites.has(note.id) ? <FaStar /> : <FaRegStar />}
-                              </button>
-                              <button 
-                                className="delete-btn" 
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleDeleteNote(note.id);
-                                }}
-                                title="Delete Note"
-                              >
-                                <FaTrash />
-                              </button>
-                            </div>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
+                  <div className="explorer-section">
+                    <h3>Root Notes</h3>
+                    <ul className="notes-list">
+                      {getRootNotes(notes).map(note => (
+                        <li 
+                          key={note.id} 
+                          className={`note-item ${selectedNote && selectedNote.id === note.id ? 'selected' : ''}`}
+                          onClick={() => handleSelectNote(note)}
+                        >
+                          <div className="item-content">
+                            <FaFile className="item-icon" />
+                            {editingNoteId === note.id ? (
+                              <input
+                                type="text"
+                                value={editingNoteName}
+                                onChange={(e) => setEditingNoteName(e.target.value)}
+                                onBlur={saveNoteName}
+                                onKeyDown={(e) => e.key === 'Enter' && saveNoteName()}
+                                autoFocus
+                                className="edit-input"
+                              />
+                            ) : (
+                              <>
+                                <span className="item-name">{note.name}</span>
+                                <button 
+                                  className="edit-name-btn" 
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    startEditingNoteName(note.id, note.name);
+                                  }}
+                                  title="Edit Note Name"
+                                >
+                                  <FaPencilAlt />
+                                </button>
+                              </>
+                            )}
+                          </div>
+                          <div className="note-actions">
+                            <button 
+                              className={`favorite-btn ${favorites.has(note.id) ? 'favorited' : ''}`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleFavorite(note.id);
+                              }}
+                              title={favorites.has(note.id) ? "Remove from favorites" : "Add to favorites"}
+                            >
+                              {favorites.has(note.id) ? <FaStar /> : <FaRegStar />}
+                            </button>
+                            <button 
+                              className="delete-btn" 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteNote(note.id);
+                              }}
+                              title="Delete Note"
+                            >
+                              <FaTrash />
+                            </button>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
 
                   {/* Folders Section */}
-                  {!searchQuery && (
-                    <div className="explorer-section">
-                      <div className="section-header">
-                        <h3>Folders</h3>
-                        <button 
-                          className="add-folder-btn"
-                          onClick={() => {
-                            setNewFolderName('');
-                            setShowCreationPanel(true);
-                          }}
-                          title="Add New Folder"
-                        >
-                          <FaPlus />
-                        </button>
-                      </div>
-                      {folders.map(folder => (
-                        <div key={folder.id} className="folder">
+                  <div className="explorer-section">
+                    <div className="section-header">
+                      <h3>Folders</h3>
+                      <button 
+                        className="add-folder-btn"
+                        onClick={() => {
+                          setNewFolderName('');
+                          setShowCreationPanel(true);
+                        }}
+                        title="Add New Folder"
+                      >
+                        <FaPlus />
+                      </button>
+                    </div>
+                    {folders.map(folder => (
+                      <div key={folder.id} className="folder">
                           <div 
                             className="folder-header"
                             onClick={() => toggleFolder(folder.id)}
@@ -930,7 +957,6 @@ function App() {
                         </div>
                       ))}
                     </div>
-                  )}
                 </div>
               </div>
             )}

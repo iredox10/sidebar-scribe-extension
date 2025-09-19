@@ -106,6 +106,7 @@
   border-radius: 4px;
   padding: 2px;
   border: 1px solid var(--border-color);
+  position: relative; /* Add relative positioning for dropdown */
 }
 
 .search-icon {
@@ -142,6 +143,95 @@
 .clear-search:hover {
   background-color: var(--bg-primary);
   color: var(--accent-danger);
+}
+
+/* Search Dropdown Styles */
+.search-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  box-shadow: var(--shadow);
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 1000;
+  margin-top: 4px;
+}
+
+.search-result-item {
+  padding: 12px;
+  border-bottom: 1px solid var(--border-color);
+  cursor: pointer;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  transition: background-color 0.2s;
+}
+
+.search-result-item:last-child {
+  border-bottom: none;
+}
+
+.search-result-item:hover {
+  background-color: var(--bg-tertiary);
+}
+
+.search-result-main {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  flex: 1;
+}
+
+.search-result-icon {
+  color: var(--text-secondary);
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.search-result-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.search-result-title {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.search-result-path {
+  font-size: 0.8rem;
+  color: var(--text-tertiary);
+  margin-bottom: 4px;
+}
+
+.search-result-preview {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.search-result-favorite {
+  color: var(--accent-warning);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.search-no-results {
+  padding: 16px;
+  text-align: center;
+  color: var(--text-tertiary);
+  font-style: italic;
 }
 
 .header-right {
@@ -775,6 +865,22 @@
   
   .search-container {
     max-width: 200px;
+  }
+  
+  .search-dropdown {
+    max-height: 200px;
+  }
+  
+  .search-result-item {
+    padding: 8px;
+  }
+  
+  .search-result-title {
+    font-size: 0.9rem;
+  }
+  
+  .search-result-preview {
+    font-size: 0.8rem;
   }
 }
 
