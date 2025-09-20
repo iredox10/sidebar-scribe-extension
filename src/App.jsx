@@ -64,8 +64,9 @@ function App() {
     };
 
     const quickCreateNote = () => {
-      const timestamp = new Date().toLocaleString();
-      const noteName = `Note ${timestamp}`;
+      const now = new Date();
+      const dateStr = now.toLocaleDateString();
+      const noteName = `Note - ${dateStr}`;
       const newNote = notesState.handleCreateNote(noteName, settingsState.settings.defaultFolder);
       
       if (newNote) {

@@ -69,8 +69,8 @@ export const useNotes = () => {
   const handleCreateFolder = (folderName) => {
     if (!folderName.trim()) return;
     
-    const timestamp = new Date().toLocaleString();
-    const finalFolderName = `${folderName.trim()} - ${timestamp}`;
+    // For folders, use the name as is without timestamp
+    const finalFolderName = folderName.trim();
     
     const newFolder = {
       id: Date.now().toString(),
@@ -85,8 +85,14 @@ export const useNotes = () => {
   const handleCreateNote = (noteName, folderId = null, defaultFolderId = null) => {
     if (!noteName.trim()) return null;
     
-    const timestamp = new Date().toLocaleString();
-    const finalNoteName = `${noteName.trim()} - ${timestamp}`;
+    // If noteName starts with "Note - ", use it as is, otherwise add timestamp
+    let finalNoteName;
+    if (noteName.trim().startsWith('Note - ')) {
+      finalNoteName = noteName.trim();
+    } else {
+      const timestamp = new Date().toLocaleString();
+      finalNoteName = `${noteName.trim()} - ${timestamp}`;
+    }
     
     const targetFolderId = folderId || defaultFolderId || null;
     

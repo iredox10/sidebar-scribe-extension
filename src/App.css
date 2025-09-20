@@ -723,21 +723,23 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 15px;
+  padding: 5px 15px;
   border-bottom: 1px solid var(--border-color);
   background-color: var(--bg-tertiary);
+  min-height: 30px;
 }
 
 .editor-header h2 {
   margin: 0;
-  font-size: 1.3rem;
-  color: var(--text-primary);
-  font-weight: 500;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  font-weight: 400;
+  opacity: 0.8;
 }
 
 .editor-actions {
   display: flex;
-  gap: 8px;
+  gap: 4px;
 }
 
 .favorite-toggle {
@@ -745,9 +747,9 @@
   border: none;
   color: var(--text-secondary);
   cursor: pointer;
-  font-size: 1.2rem;
-  padding: 5px;
-  border-radius: 4px;
+  font-size: 0.9rem;
+  padding: 3px;
+  border-radius: 3px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -760,6 +762,25 @@
 
 .favorite-toggle.favorited {
   color: var(--accent-warning);
+}
+
+.save-file-btn {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 3px;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.save-file-btn:hover {
+  background-color: var(--bg-primary);
+  color: var(--accent-primary);
 }
 
 .favorite-toggle.favorited:hover {
