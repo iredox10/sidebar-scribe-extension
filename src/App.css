@@ -773,6 +773,34 @@
   height: 100%;
 }
 
+/* Compact Toolbar Styles */
+.suneditor .se-toolbar {
+  min-height: 32px !important;
+  height: 32px !important;
+  padding: 2px 4px !important;
+  border-bottom: 1px solid var(--border-color) !important;
+  background-color: var(--bg-tertiary) !important;
+}
+
+.suneditor .se-btn-tray {
+  gap: 1px !important;
+}
+
+.suneditor .se-btn {
+  width: 24px !important;
+  height: 24px !important;
+  margin: 1px !important;
+  padding: 2px !important;
+  font-size: 12px !important;
+  border-radius: 3px !important;
+}
+
+.suneditor .se-btn-select {
+  height: 24px !important;
+  font-size: 11px !important;
+  padding: 2px 4px !important;
+}
+
 .suneditor .se-container {
   flex: 1;
   display: flex;
@@ -786,10 +814,12 @@
 
 .suneditor .se-wrapper .se-wrapper-inner {
   height: 100%;
-  font-size: 16px;
-  font-family: Georgia, serif;
+  font-size: 14px;
+  font-family: Arial, Helvetica, sans-serif;
   background-color: var(--bg-secondary);
   color: var(--text-primary);
+  padding: 12px;
+  line-height: 1.5;
 }
 
 .no-note-selected {

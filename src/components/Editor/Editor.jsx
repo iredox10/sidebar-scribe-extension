@@ -19,21 +19,25 @@ const Editor = ({
     width: '100%',
     mode: 'classic',
     font: 'Arial, Helvetica, sans-serif',
-    fontSize: 16,
+    fontSize: 14,
     buttonList: [
-      ['undo', 'redo'],
-      ['font', 'fontSize', 'formatBlock'],
-      ['bold', 'underline', 'italic', 'strike', 'subscript', 'superscript'],
-      ['fontColor', 'hiliteColor'],
-      ['removeFormat'],
-      ['outdent', 'indent'],
-      ['align', 'horizontalRule', 'list', 'table'],
-      ['link', 'image', 'video'],
-      ['fullScreen', 'showBlocks', 'codeView'],
-      ['print'],
+      ['bold', 'italic', 'underline', 'strike'],
+      ['fontColor', 'hiliteColor', 'removeFormat'],
+      ['list', 'align'],
+      ['link', 'codeView']
     ],
     resizingBar: false,
-    charCounter: true,
+    charCounter: false,
+    showPathLabel: false,
+    maxHeight: '100%',
+    minHeight: '200px',
+    placeholder: 'Start writing your note...',
+    // Make toolbar more compact
+    toolbarWidth: 'auto',
+    stickyToolbar: false,
+    hideToolbar: false,
+    // Reduce toolbar padding and margins
+    defaultStyle: 'font-family: Arial, Helvetica, sans-serif; font-size: 14px; line-height: 1.5;'
   };
 
   return (
