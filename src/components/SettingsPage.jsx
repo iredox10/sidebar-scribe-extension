@@ -31,7 +31,6 @@ const SettingsPage = ({ folders = [], defaultFolder, theme, onSaveSettings, onBa
       }
     } catch (error) {
       console.error('Error selecting save path:', error);
-      alert('Error selecting save path. Please try again.');
     }
   };
 

@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { FaPlus, FaTimes } from 'react-icons/fa';
-import CreationPanel from './CreationPanel';
 import NotesSection from './NotesSection';
 import FolderItem from './FolderItem';
 
@@ -34,15 +33,33 @@ const Sidebar = ({
   getRootNotes,
   getNotesByFolder
 }) => {
-  const [showCreationPanel, setShowCreationPanel] = useState(false);
-  const [newFolderName, setNewFolderName] = useState('');
-  const [newNoteName, setNewNoteName] = useState('');
-
   if (!show) return null;
 
   const favoriteNotes = getFavoriteNotes();
   const recentNotes = getRecentNotes();
   const rootNotes = getRootNotes();
+
+  // Instant creation handlers
+  const handleCreateNewNote = () => {
+    const newNote = onCreateNote(null, null); // Create in root with default name
+    if (newNote) {
+      onStartEditNote(newNote.id, newNote.name);
+    }
+  };
+
+  const handleCreateNewFolder = () => {
+    const newFolder = onCreateFolder(null); // Create with default name
+    if (newFolder) {
+      onStartEditFolder(newFolder.id, newFolder.name);
+    }
+  };
+
+  const handleCreateNoteInFolder = (folderId) => {
+    const newNote = onCreateNote(null, folderId); // Create with default name in folder
+    if (newNote) {
+      onStartEditNote(newNote.id, newNote.name);
+    }
+  };
 
   return (
     <div className="sidebar">
@@ -55,25 +72,6 @@ const Sidebar = ({
           <FaTimes />
         </button>
       </div>
-      
-      <button 
-        className="show-creation-panel"
-        onClick={() => setShowCreationPanel(!showCreationPanel)}
-      >
-        {showCreationPanel ? <FaTimes /> : <FaPlus />} 
-        {showCreationPanel ? 'Cancel' : 'New'}
-      </button>
-      
-      <CreationPanel
-        show={showCreationPanel}
-        newFolderName={newFolderName}
-        setNewFolderName={setNewFolderName}
-        newNoteName={newNoteName}
-        setNewNoteName={setNewNoteName}
-        onCreateFolder={onCreateFolder}
-        onCreateNote={onCreateNote}
-        onToggle={setShowCreationPanel}
-      />
 
       <div className="file-explorer">
         {/* Favorites Section */}
@@ -109,20 +107,32 @@ const Sidebar = ({
         />
 
         {/* Root Notes */}
-        <NotesSection
-          title="Root Notes"
-          notes={rootNotes}
-          selectedNote={selectedNote}
-          favorites={favorites}
-          onSelectNote={onSelectNote}
-          onToggleFavorite={onToggleFavorite}
-          onDeleteNote={onDeleteNote}
-          onStartEditNote={onStartEditNote}
-          editingNoteId={editingNoteId}
-          editingNoteName={editingNoteName}
-          onEditingNoteNameChange={onEditingNoteNameChange}
-          onSaveNoteEdit={onSaveNoteEdit}
-        />
+        <div className="explorer-section">
+          <div className="section-header">
+            <h3>Root Notes</h3>
+            <button 
+              className="add-note-btn"
+              onClick={handleCreateNewNote}
+              title="Add New Note"
+            >
+              <FaPlus />
+            </button>
+          </div>
+          <NotesSection
+            notes={rootNotes}
+            selectedNote={selectedNote}
+            favorites={favorites}
+            onSelectNote={onSelectNote}
+            onToggleFavorite={onToggleFavorite}
+            onDeleteNote={onDeleteNote}
+            onStartEditNote={onStartEditNote}
+            editingNoteId={editingNoteId}
+            editingNoteName={editingNoteName}
+            onEditingNoteNameChange={onEditingNoteNameChange}
+            onSaveNoteEdit={onSaveNoteEdit}
+            showTitle={false}
+          />
+        </div>
 
         {/* Folders Section */}
         <div className="explorer-section">
@@ -130,10 +140,7 @@ const Sidebar = ({
             <h3>Folders</h3>
             <button 
               className="add-folder-btn"
-              onClick={() => {
-                setNewFolderName('');
-                setShowCreationPanel(true);
-              }}
+              onClick={handleCreateNewFolder}
               title="Add New Folder"
             >
               <FaPlus />
@@ -146,7 +153,7 @@ const Sidebar = ({
               notes={getNotesByFolder(folder.id)}
               isExpanded={expandedFolders.has(folder.id)}
               onToggle={onToggleFolder}
-              onCreateNote={onCreateNote}
+              onCreateNote={handleCreateNoteInFolder}
               onDelete={onDeleteFolder}
               onStartEdit={onStartEditFolder}
               isEditing={editingFolderId === folder.id}

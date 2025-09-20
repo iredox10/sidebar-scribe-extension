@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 
 const MessageListener = ({ 
   onCreateNoteFromSelection, 
@@ -8,8 +9,7 @@ const MessageListener = ({
     const messageListener = (message, sender, sendResponse) => {
       if (message.action === "createNoteFromSelection") {
         const { text } = message;
-        const timestamp = new Date().toLocaleString();
-        const noteName = `Note from selection - ${timestamp}`;
+        const noteName = `Selection - ${uuidv4().slice(0, 8)}`;
         
         const newNote = {
           id: Date.now().toString(),

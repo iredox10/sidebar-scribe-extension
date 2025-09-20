@@ -1,7 +1,7 @@
 import React from 'react';
 import { 
   FaFile, FaFolderOpen, FaGoogleDrive, FaGithub, 
-  FaCog, FaMoon, FaSun 
+  FaCog, FaMoon, FaSun, FaExternalLinkAlt, FaWindowRestore
 } from 'react-icons/fa';
 
 const MoreActionsDropdown = ({ 
@@ -14,7 +14,9 @@ const MoreActionsDropdown = ({
   onSyncToGoogleDrive, 
   onSyncToGitHub, 
   onOpenSettings,
-  selectedNote 
+  selectedNote,
+  isFloatingMode,
+  onToggleFloatingMode
 }) => {
   if (!show) return null;
 
@@ -33,6 +35,17 @@ const MoreActionsDropdown = ({
         {theme === 'light' ? <FaMoon /> : <FaSun />}
         <span>Theme</span>
       </button>
+      
+      <button 
+        className="dropdown-item" 
+        onClick={() => handleAction(onToggleFloatingMode)}
+        title={isFloatingMode ? 'Return to sidebar' : 'Open in floating window'}
+      >
+        {isFloatingMode ? <FaWindowRestore /> : <FaExternalLinkAlt />}
+        <span>{isFloatingMode ? 'Sidebar' : 'Float'}</span>
+      </button>
+      
+      <div className="dropdown-divider"></div>
       
       <button 
         className="dropdown-item" 

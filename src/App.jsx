@@ -4,6 +4,7 @@ import Header from './components/Header/Header.jsx';
 import Sidebar from './components/Sidebar/Sidebar.jsx';
 import Editor from './components/Editor/Editor.jsx';
 import MessageListener from './components/UI/MessageListener.jsx';
+import FloatingWindow from './components/UI/FloatingWindow.jsx';
 import { useNotes } from './hooks/useNotes.js';
 import { useSettings } from './hooks/useSettings.js';
 import { useUI } from './hooks/useUI.js';
@@ -76,10 +77,17 @@ function App() {
       }
     };
 
-    return (
-      <div className="app">
-        <MessageListener />
-        
+    const handleCreateNoteFromSelection = (newNote) => {
+      // Add the note to our notes array at the top
+      notesState.setNotes(prevNotes => [newNote, ...prevNotes]);
+      // Select the new note for editing
+      notesState.handleSelectNote(newNote);
+      setNoteContent(newNote.content || '');
+      uiState.closeSidebar();
+    };
+
+    const appContent = (
+      <>
         <Header 
           selectedNote={notesState.selectedNote}
           onToggleSidebar={uiState.toggleSidebar}
@@ -102,6 +110,8 @@ function App() {
           onOpenSettings={() => uiState.setView('settings')}
           showMoreActions={uiState.showMoreActions}
           onToggleMoreActions={uiState.setShowMoreActions}
+          isFloatingMode={uiState.isFloatingMode}
+          onToggleFloatingMode={uiState.toggleFloatingMode}
         />
 
         <div className="main-content">
@@ -155,8 +165,32 @@ function App() {
             onSaveToFile={fileOpsState.saveToLocalFile}
             onQuickCreateNote={quickCreateNote}
             onLoadFromFile={fileOpsState.loadFromLocalFile}
+            theme={settingsState.settings.theme}
           />
         </div>
+      </>
+    );
+
+    return (
+      <div className="app">
+        <MessageListener 
+          onCreateNoteFromSelection={handleCreateNoteFromSelection}
+          defaultFolderId={settingsState.settings.defaultFolder}
+        />
+        
+        {uiState.isFloatingMode ? (
+          <FloatingWindow
+            isOpen={true}
+            onClose={uiState.toggleFloatingMode}
+            title="Side Note"
+            isPinned={uiState.isFloatingPinned}
+            onTogglePin={uiState.toggleFloatingPin}
+          >
+            {appContent}
+          </FloatingWindow>
+        ) : (
+          appContent
+        )}
       </div>
     );
   } catch (error) {

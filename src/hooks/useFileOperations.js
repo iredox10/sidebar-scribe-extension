@@ -39,7 +39,6 @@ export const useFileOperations = (notes, folders, selectedNote, onCreateNote, de
         }
       } catch (error) {
         console.error('Error reading file:', error);
-        alert('Error reading file. Please try again.');
       }
     };
     
@@ -50,22 +49,14 @@ export const useFileOperations = (notes, folders, selectedNote, onCreateNote, de
     const syncData = prepareSyncData(notes, folders);
     const result = await syncToGoogleDrive(syncData);
     
-    if (result.success) {
-      alert(result.message);
-    } else {
-      alert(`Error: ${result.error}`);
-    }
+    console.log('Google Drive sync result:', result);
   };
 
   const syncToGitHubHandler = async () => {
     const syncData = prepareSyncData(notes, folders);
     const result = await syncToGitHub(syncData);
     
-    if (result.success) {
-      alert(result.message);
-    } else {
-      alert(`Error: ${result.error}`);
-    }
+    console.log('GitHub sync result:', result);
   };
 
   return {

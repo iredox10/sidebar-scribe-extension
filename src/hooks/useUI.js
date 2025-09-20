@@ -8,6 +8,8 @@ export const useUI = () => {
   const [showMoreActions, setShowMoreActions] = useState(false);
   const [showCreationPanel, setShowCreationPanel] = useState(false);
   const [expandedFolders, setExpandedFolders] = useState(new Set());
+  const [isFloatingMode, setIsFloatingMode] = useState(false);
+  const [isFloatingPinned, setIsFloatingPinned] = useState(false);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -39,6 +41,18 @@ export const useUI = () => {
   const closeSidebar = () => setShowSidebar(false);
   const toggleSidebar = () => setShowSidebar(!showSidebar);
 
+  const toggleFloatingMode = () => {
+    setIsFloatingMode(prev => !prev);
+    if (isFloatingMode) {
+      // When closing floating mode, also unpin
+      setIsFloatingPinned(false);
+    }
+  };
+
+  const toggleFloatingPin = () => {
+    setIsFloatingPinned(prev => !prev);
+  };
+
   return {
     showSidebar,
     setShowSidebar,
@@ -55,6 +69,10 @@ export const useUI = () => {
     showCreationPanel,
     setShowCreationPanel,
     expandedFolders,
-    toggleFolder
+    toggleFolder,
+    isFloatingMode,
+    isFloatingPinned,
+    toggleFloatingMode,
+    toggleFloatingPin
   };
 };

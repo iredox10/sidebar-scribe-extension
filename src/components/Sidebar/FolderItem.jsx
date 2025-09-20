@@ -33,10 +33,7 @@ const FolderItem = ({
 
   const handleCreateNote = (e) => {
     e.stopPropagation();
-    const noteName = prompt('Note name:');
-    if (noteName) {
-      onCreateNote(noteName, folder.id);
-    }
+    onCreateNote(folder.id);
   };
 
   return (

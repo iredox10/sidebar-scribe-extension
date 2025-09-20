@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import { loadAllData, saveAllData } from '../utils/storage';
 import {
   createFolder,
@@ -66,46 +67,36 @@ export const useNotes = () => {
     saveFavorites();
   }, [favorites]);
 
-  const handleCreateFolder = (folderName) => {
-    if (!folderName.trim()) return;
-    
-    // For folders, use the name as is without timestamp
-    const finalFolderName = folderName.trim();
+    const handleCreateFolder = (folderName) => {
+    if (!folderName) folderName = `Folder - ${uuidv4().slice(0, 8)}`;
     
     const newFolder = {
       id: Date.now().toString(),
-      name: finalFolderName,
+      name: folderName.trim(),
       createdAt: new Date().toISOString()
     };
     
-    setFolders([...folders, newFolder]);
+    // Add new folder at the beginning of the array
+    setFolders([newFolder, ...folders]);
     return newFolder;
   };
 
-  const handleCreateNote = (noteName, folderId = null, defaultFolderId = null) => {
-    if (!noteName.trim()) return null;
-    
-    // If noteName starts with "Note - ", use it as is, otherwise add timestamp
-    let finalNoteName;
-    if (noteName.trim().startsWith('Note - ')) {
-      finalNoteName = noteName.trim();
-    } else {
-      const timestamp = new Date().toLocaleString();
-      finalNoteName = `${noteName.trim()} - ${timestamp}`;
-    }
+    const handleCreateNote = (noteName, folderId = null, defaultFolderId = null) => {
+    if (!noteName) noteName = `Note - ${uuidv4().slice(0, 8)}`;
     
     const targetFolderId = folderId || defaultFolderId || null;
     
     const newNote = {
       id: Date.now().toString(),
-      name: finalNoteName,
+      name: noteName.trim(),
       content: '',
       folderId: targetFolderId,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
     
-    setNotes(prevNotes => [...prevNotes, newNote]);
+    // Add new note at the beginning of the array
+    setNotes(prevNotes => [newNote, ...prevNotes]);
     return newNote;
   };
 
@@ -192,7 +183,7 @@ export const useNotes = () => {
 
   const getRecentNotes = () => {
     return [...notes]
-      .sort((a, b) => new Date(b.lastAccessed || b.updatedAt) - new Date(a.lastAccessed || a.updatedAt))
+      .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
       .slice(0, 10);
   };
 
@@ -211,6 +202,8 @@ export const useNotes = () => {
     folders,
     selectedNote,
     favorites,
+    setNotes,
+    setFolders,
     handleCreateFolder,
     handleCreateNote,
     handleDeleteFolder,

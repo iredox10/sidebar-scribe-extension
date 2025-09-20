@@ -12,10 +12,13 @@ const Editor = ({
   onToggleFavorite,
   onSaveToFile,
   onQuickCreateNote,
-  onLoadFromFile
+  onLoadFromFile,
+  theme = 'light'
 }) => {
+  const isDark = theme === 'dark';
+  
   const editorOptions = {
-    height: '100%',
+    height: 'auto',
     width: '100%',
     mode: 'classic',
     font: 'Arial, Helvetica, sans-serif',
@@ -29,19 +32,29 @@ const Editor = ({
     resizingBar: false,
     charCounter: false,
     showPathLabel: false,
-    maxHeight: '100%',
-    minHeight: '200px',
+    maxHeight: 'none',
+    minHeight: '300px',
     placeholder: 'Start writing your note...',
     // Make toolbar more compact
     toolbarWidth: 'auto',
     stickyToolbar: false,
     hideToolbar: false,
-    // Reduce toolbar padding and margins
-    defaultStyle: 'font-family: Arial, Helvetica, sans-serif; font-size: 14px; line-height: 1.5;'
+    // Enable scrolling
+    overflow: 'auto',
+    // Apply theme-aware styling
+    defaultStyle: `
+      font-family: Arial, Helvetica, sans-serif; 
+      font-size: 14px; 
+      line-height: 1.5;
+      background-color: ${isDark ? '#2a2a2a' : '#ffffff'};
+      color: ${isDark ? '#e0e0e0' : '#333333'};
+    `,
+    // Override SunEditor's internal styles for dark theme
+    className: isDark ? 'sun-editor-dark' : ''
   };
 
   return (
-    <div className="editor-container">
+    <div className={`editor-container ${isDark ? 'editor-dark' : ''}`}>
       {selectedNote ? (
         <div className="editor-wrapper">
           <EditorHeader
@@ -51,7 +64,7 @@ const Editor = ({
             onSaveToFile={onSaveToFile}
           />
           <SunEditor
-            key={selectedNote.id}
+            key={`${selectedNote.id}-${theme}`}
             defaultValue={noteContent}
             onChange={onUpdateContent}
             setOptions={editorOptions}
@@ -64,7 +77,7 @@ const Editor = ({
             onLoadFromFile={onLoadFromFile}
           />
           <SunEditor
-            key="new-note"
+            key={`new-note-${theme}`}
             defaultValue=""
             onChange={onUpdateContent}
             setOptions={editorOptions}

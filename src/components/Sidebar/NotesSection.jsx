@@ -15,13 +15,14 @@ const NotesSection = ({
   editingNoteName,
   onEditingNoteNameChange,
   onSaveNoteEdit,
-  icon = null
+  icon = null,
+  showTitle = true
 }) => {
   if (notes.length === 0) return null;
 
   return (
     <div className="explorer-section">
-      <h3>{icon && <span className="section-icon">{icon}</span>} {title}</h3>
+      {showTitle && <h3>{icon && <span className="section-icon">{icon}</span>} {title}</h3>}
       <ul className="notes-list">
         {notes.map(note => (
           <NoteItem

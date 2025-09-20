@@ -22,7 +22,9 @@ const Header = ({
   onSyncToGitHub,
   onOpenSettings,
   showMoreActions,
-  onToggleMoreActions
+  onToggleMoreActions,
+  isFloatingMode,
+  onToggleFloatingMode
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearch, setShowSearch] = useState(false);
@@ -145,6 +147,8 @@ const Header = ({
               onSyncToGitHub={onSyncToGitHub}
               onOpenSettings={onOpenSettings}
               selectedNote={selectedNote}
+              isFloatingMode={isFloatingMode}
+              onToggleFloatingMode={onToggleFloatingMode}
             />
           </div>
         </div>
