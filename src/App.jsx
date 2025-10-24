@@ -7,6 +7,7 @@ import SettingsPage from './components/SettingsPage.jsx';
 import AllNotesView from './components/AllNotesView.jsx';
 import MessageListener from './components/UI/MessageListener.jsx';
 import FloatingWindow from './components/UI/FloatingWindow.jsx';
+import ConfirmDialog from './components/UI/ConfirmDialog.jsx';
 import { useNotes } from './hooks/useNotes.js';
 import { useSettings } from './hooks/useSettings.js';
 import { useUI } from './hooks/useUI.js';
@@ -32,6 +33,15 @@ function App() {
 
     // Local state for editor content
     const [noteContent, setNoteContent] = React.useState('');
+    
+    // Confirmation dialog state
+    const [confirmDialog, setConfirmDialog] = React.useState({
+      show: false,
+      title: '',
+      message: '',
+      onConfirm: null,
+      type: 'danger'
+    });
 
     console.log('✅ All hooks initialized successfully');
 
@@ -86,6 +96,46 @@ function App() {
       notesState.handleSelectNote(newNote);
       setNoteContent(newNote.content || '');
       uiState.closeSidebar();
+    };
+
+    // Wrapped delete handlers with confirmation
+    const handleDeleteNoteWithConfirm = (noteId) => {
+      const note = notesState.notes.find(n => n.id === noteId);
+      if (!note) return;
+
+      setConfirmDialog({
+        show: true,
+        title: 'Delete Note?',
+        message: `Are you sure you want to delete "${note.name}"? This action cannot be undone.`,
+        onConfirm: () => {
+          notesState.handleDeleteNote(noteId);
+          setConfirmDialog({ ...confirmDialog, show: false });
+        },
+        type: 'danger'
+      });
+    };
+
+    const handleDeleteFolderWithConfirm = (folderId) => {
+      const folder = notesState.folders.find(f => f.id === folderId);
+      if (!folder) return;
+
+      const notesInFolder = notesState.getNotesByFolder(folderId);
+      const noteCount = notesInFolder.length;
+
+      setConfirmDialog({
+        show: true,
+        title: 'Delete Folder?',
+        message: `Are you sure you want to delete the folder "${folder.name}"?${noteCount > 0 ? ` This will also delete ${noteCount} note${noteCount > 1 ? 's' : ''} inside it.` : ''} This action cannot be undone.`,
+        onConfirm: () => {
+          notesState.handleDeleteFolder(folderId);
+          setConfirmDialog({ ...confirmDialog, show: false });
+        },
+        type: 'danger'
+      });
+    };
+
+    const closeConfirmDialog = () => {
+      setConfirmDialog({ ...confirmDialog, show: false });
     };
 
     const handleAppendToCurrentNote = (text) => {
@@ -143,7 +193,7 @@ function App() {
         favorites={notesState.favorites}
         onSelectNote={handleNoteSelect}
         onToggleFavorite={notesState.toggleFavorite}
-        onDeleteNote={notesState.handleDeleteNote}
+        onDeleteNote={handleDeleteNoteWithConfirm}
         onStartEditNote={editingState.startEditingNoteName}
         editingNoteId={editingState.editingNoteId}
         editingNoteName={editingState.editingNoteName}
@@ -158,7 +208,7 @@ function App() {
         expandedFolders={uiState.expandedFolders}
         onToggleFolder={uiState.toggleFolder}
         getNotesByFolder={notesState.getNotesByFolder}
-        onDeleteFolder={notesState.handleDeleteFolder}
+        onDeleteFolder={handleDeleteFolderWithConfirm}
         onStartEditFolder={editingState.startEditingFolderName}
         editingFolderId={editingState.editingFolderId}
         editingFolderName={editingState.editingFolderName}
@@ -209,10 +259,10 @@ function App() {
             favorites={notesState.favorites}
             onSelectNote={handleNoteSelect}
             onToggleFavorite={notesState.toggleFavorite}
-            onDeleteNote={notesState.handleDeleteNote}
+            onDeleteNote={handleDeleteNoteWithConfirm}
             onCreateNote={notesState.handleCreateNote}
             onCreateFolder={notesState.handleCreateFolder}
-            onDeleteFolder={notesState.handleDeleteFolder}
+            onDeleteFolder={handleDeleteFolderWithConfirm}
             onStartEditNote={editingState.startEditingNoteName}
             onStartEditFolder={editingState.startEditingFolderName}
             editingNoteId={editingState.editingNoteId}
@@ -281,6 +331,16 @@ function App() {
         ) : (
           appContent
         )}
+
+        {/* Confirmation Dialog */}
+        <ConfirmDialog
+          show={confirmDialog.show}
+          title={confirmDialog.title}
+          message={confirmDialog.message}
+          onConfirm={confirmDialog.onConfirm}
+          onCancel={closeConfirmDialog}
+          type={confirmDialog.type}
+        />
       </div>
     );
   } catch (error) {

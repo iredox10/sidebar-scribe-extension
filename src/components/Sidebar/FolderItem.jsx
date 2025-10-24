@@ -28,6 +28,8 @@ const FolderItem = ({
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
       onSaveEdit();
+    } else if (e.key === 'Escape') {
+      onSaveEdit();
     }
   };
 
@@ -40,7 +42,7 @@ const FolderItem = ({
     <div className="folder">
       <div 
         className="folder-header"
-        onClick={() => onToggle(folder.id)}
+        onClick={() => !isEditing && onToggle(folder.id)}
       >
         <div className="item-content">
           {isExpanded ? 
@@ -54,6 +56,7 @@ const FolderItem = ({
               onChange={(e) => onEditingNameChange(e.target.value)}
               onBlur={onSaveEdit}
               onKeyDown={handleKeyDown}
+              onClick={(e) => e.stopPropagation()}
               autoFocus
               className="edit-input"
             />

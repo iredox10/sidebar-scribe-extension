@@ -17,13 +17,15 @@ const NoteItem = ({
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
       onSaveEdit();
+    } else if (e.key === 'Escape') {
+      onSaveEdit();
     }
   };
 
   return (
     <li 
       className={`note-item ${isSelected ? 'selected' : ''}`}
-      onClick={() => onSelect(note)}
+      onClick={() => !isEditing && onSelect(note)}
     >
       <div className="item-content">
         <FaFile className="item-icon" />
@@ -34,6 +36,7 @@ const NoteItem = ({
             onChange={(e) => onEditingNameChange(e.target.value)}
             onBlur={onSaveEdit}
             onKeyDown={handleKeyDown}
+            onClick={(e) => e.stopPropagation()}
             autoFocus
             className="edit-input"
           />
