@@ -988,6 +988,7 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+  overflow: hidden;
 }
 
 .editor-header {
@@ -1074,9 +1075,11 @@
 
 .suneditor {
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  overflow: hidden !important;
+  min-height: 0 !important;
 }
 
 /* Modern Beautiful Toolbar Styles - Compact */
@@ -1088,6 +1091,7 @@
   background: var(--bg-tertiary) !important;
   backdrop-filter: blur(10px);
   box-shadow: var(--shadow-sm);
+  flex-shrink: 0 !important;
 }
 
 .suneditor .se-btn-tray {
@@ -1119,27 +1123,27 @@
 }
 
 .suneditor .se-container {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  min-height: 0 !important;
 }
 
 .suneditor .se-wrapper {
-  flex: 1;
-  overflow: auto;
-  height: calc(100vh - 120px); /* Adjust based on header heights */
-  max-height: none;
+  flex: 1 !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  min-height: 0 !important;
+  max-height: none !important;
 }
 
 .suneditor .se-wrapper .se-wrapper-inner {
-  height: 100%;
-  min-height: calc(100vh - 120px);
-  font-size: 14px;
-  font-family: Arial, Helvetica, sans-serif;
-  padding: 12px;
-  line-height: 1.5;
-  overflow-y: auto;
-  /* Theme will be applied via classes */
+  min-height: auto !important;
+  font-size: 14px !important;
+  font-family: Arial, Helvetica, sans-serif !important;
+  padding: 16px !important;
+  line-height: 1.5 !important;
 }
 
 /* Base theme styles that will be overridden by specific theme classes */
@@ -1151,8 +1155,10 @@
 /* Ensure the editor content area can scroll */
 .suneditor .se-wrapper-wysiwyg {
   overflow-y: auto !important;
-  height: 100% !important;
+  overflow-x: hidden !important;
+  min-height: 100% !important;
   max-height: none !important;
+  height: auto !important;
 }
 
 .no-note-selected {

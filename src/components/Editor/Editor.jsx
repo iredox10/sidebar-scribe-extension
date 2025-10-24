@@ -28,7 +28,7 @@ const Editor = ({
   }, [noteContent, selectedNote]);
   
   const editorOptions = {
-    height: 'auto',
+    height: '80vh',
     width: '100%',
     mode: 'classic',
     font: 'Arial, Helvetica, sans-serif',
@@ -42,16 +42,10 @@ const Editor = ({
     resizingBar: false,
     charCounter: false,
     showPathLabel: false,
-    maxHeight: 'none',
-    minHeight: '300px',
     placeholder: 'Start writing your note...',
-    // Make toolbar more compact
     toolbarWidth: 'auto',
     stickyToolbar: false,
     hideToolbar: false,
-    // Enable scrolling
-    overflow: 'auto',
-    // Apply theme-aware styling
     defaultStyle: `
       font-family: Arial, Helvetica, sans-serif; 
       font-size: 14px; 
@@ -59,7 +53,6 @@ const Editor = ({
       background-color: ${isDark ? '#2a2a2a' : '#ffffff'};
       color: ${isDark ? '#e0e0e0' : '#333333'};
     `,
-    // Override SunEditor's internal styles for dark theme
     className: isDark ? 'sun-editor-dark' : ''
   };
 
