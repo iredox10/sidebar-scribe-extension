@@ -151,17 +151,9 @@ function App() {
       console.log("Text to append:", text);
       
       if (notesState.selectedNote) {
-        // Append the text to the current note content with formatting
-        const separator = noteContent.trim() ? '\n\n---\n\n' : '';
-        const timestamp = new Date().toLocaleString('en-US', {
-          month: 'short',
-          day: 'numeric',
-          year: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
-        });
-        const formattedText = `${separator}**Added on ${timestamp}:**\n\n${text}`;
-        const newContent = noteContent + formattedText;
+        // Append the text to the current note content as-is
+        const separator = noteContent.trim() ? '\n\n' : '';
+        const newContent = noteContent + separator + text;
         
         console.log("✅ New content created, length:", newContent.length);
         console.log("First 100 chars:", newContent.substring(0, 100));
