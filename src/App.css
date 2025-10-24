@@ -1512,20 +1512,23 @@
 }
 
 .select-path-btn {
-  padding: 10px 14px;
+  padding: 10px 16px;
   background: var(--accent-gradient);
   color: white;
   border: none;
   border-radius: var(--border-radius-sm);
   cursor: pointer;
-  font-size: 1rem;
+  font-size: 0.95rem;
+  font-weight: 500;
   transition: all var(--transition-speed) ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 44px;
+  gap: 8px;
+  min-width: fit-content;
   height: 44px;
   box-shadow: var(--shadow-colored);
+  white-space: nowrap;
 }
 
 .select-path-btn:hover {

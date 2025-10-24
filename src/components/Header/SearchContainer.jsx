@@ -1,6 +1,47 @@
 import React from 'react';
 import { FaSearch, FaTimes, FaFile, FaStar } from 'react-icons/fa';
 
+// Helper function to strip markdown syntax and HTML tags
+const stripMarkdown = (text) => {
+  if (!text) return '';
+  
+  return text
+    // Remove entire HTML blocks (including content)
+    .replace(/<[^>]+>.*?<\/[^>]+>/gs, '')
+    // Remove self-closing and remaining HTML tags
+    .replace(/<[^>]*\/?>/g, '')
+    // Decode HTML entities
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    // Remove headers
+    .replace(/^#{1,6}\s+/gm, '')
+    // Remove bold/italic
+    .replace(/(\*\*|__)(.*?)\1/g, '$2')
+    .replace(/(\*|_)(.*?)\1/g, '$2')
+    // Remove links
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    // Remove images
+    .replace(/!\[([^\]]*)\]\([^)]+\)/g, '$1')
+    // Remove code blocks
+    .replace(/```[\s\S]*?```/g, '')
+    .replace(/`([^`]+)`/g, '$1')
+    // Remove blockquotes
+    .replace(/^\s*>\s+/gm, '')
+    // Remove horizontal rules
+    .replace(/^(-{3,}|_{3,}|\*{3,})$/gm, '')
+    // Remove list markers
+    .replace(/^\s*[-*+]\s+/gm, '')
+    .replace(/^\s*\d+\.\s+/gm, '')
+    // Remove extra whitespace
+    .replace(/\n\s*\n/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+};
+
 const SearchContainer = ({ 
   searchQuery, 
   onSearchChange, 
@@ -56,8 +97,8 @@ const SearchContainer = ({
                     <div className="search-result-path">in {folderName}</div>
                     {note.content && (
                       <div className="search-result-preview">
-                        {note.content.substring(0, 60)}
-                        {note.content.length > 60 ? '...' : ''}
+                        {stripMarkdown(note.content).substring(0, 60)}
+                        {stripMarkdown(note.content).length > 60 ? '...' : ''}
                       </div>
                     )}
                   </div>

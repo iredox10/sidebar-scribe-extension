@@ -138,11 +138,9 @@ export const useNotes = () => {
       const updatedNotes = updateNoteContent(notes, selectedNote.id, content);
       setNotes(updatedNotes);
       
-      // Update the selected note with new content
-      const updatedNote = findNoteById(updatedNotes, selectedNote.id);
-      if (updatedNote) {
-        setSelectedNote(updatedNote);
-      }
+      // Don't update selectedNote state to avoid losing focus
+      // The content is already updated in the notes array
+      // Only update if we need to for other reasons (like name change)
     }
   };
 

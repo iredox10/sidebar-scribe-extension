@@ -76,6 +76,13 @@ const AllNotesView = ({
     setSearchQuery('');
   };
 
+  const handleSelectNote = (note) => {
+    // Select the note
+    onSelectNote(note);
+    // Close the all notes view and return to editor
+    onBack();
+  };
+
   return (
     <div className="all-notes-view">
       <div className="all-notes-header">
@@ -123,7 +130,7 @@ const AllNotesView = ({
                 onSaveEdit={onSaveFolderEdit}
                 selectedNote={selectedNote}
                 favorites={favorites}
-                onSelectNote={onSelectNote}
+                onSelectNote={handleSelectNote}
                 onToggleFavorite={onToggleFavorite}
                 onDeleteNote={onDeleteNote}
                 onStartEditNote={onStartEditNote}
@@ -145,7 +152,7 @@ const AllNotesView = ({
               notes={filteredNotes}
               selectedNote={selectedNote}
               favorites={favorites}
-              onSelectNote={onSelectNote}
+              onSelectNote={handleSelectNote}
               onToggleFavorite={onToggleFavorite}
               onDeleteNote={onDeleteNote}
               onStartEditNote={onStartEditNote}

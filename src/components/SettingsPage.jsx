@@ -68,14 +68,41 @@ const SettingsPage = ({ folders = [], defaultFolder, theme, onSaveSettings, onBa
 
   const handleSelectSavePath = async () => {
     try {
-      // In a real Chrome extension, you would use the chrome.fileSystem API
-      // For now, we'll just prompt the user for a path
-      const path = prompt('Enter the path where you want to save your notes:', localSavePath || '~/Documents/Notes');
-      if (path) {
-        setLocalSavePath(path);
+      // Use the File System Access API (only works in modern browsers)
+      if ('showDirectoryPicker' in window) {
+        const directoryHandle = await window.showDirectoryPicker({
+          mode: 'readwrite',
+          startIn: 'documents'
+        });
+        
+        // Store the directory handle name/path
+        const dirName = directoryHandle.name;
+        setLocalSavePath(dirName);
+        
+        // Store the directory handle for later use
+        // Note: We can't directly serialize the handle, so we store the name
+        // The actual handle would need to be requested again when saving
+        await chrome.storage.local.set({ 
+          localSaveDirectoryName: dirName,
+          localSavePath: dirName
+        });
+        
+        alert(`Directory selected: ${dirName}\n\nNote: You'll need to grant permission again when saving files.`);
+      } else {
+        // Fallback for browsers that don't support File System Access API
+        alert('Your browser does not support directory selection.\n\nPlease manually enter the path where you want to save notes (e.g., Documents/Notes).\n\nNote: This path is for reference only. Files will still be saved to your Downloads folder.');
+        const path = prompt('Enter the reference path for your notes:', localSavePath || 'Documents/Notes');
+        if (path) {
+          setLocalSavePath(path);
+        }
       }
     } catch (error) {
-      console.error('Error selecting save path:', error);
+      if (error.name === 'AbortError') {
+        console.log('Directory selection cancelled');
+      } else {
+        console.error('Error selecting save path:', error);
+        alert('Failed to select directory. Please try again.');
+      }
     }
   };
 
@@ -142,19 +169,20 @@ const SettingsPage = ({ folders = [], defaultFolder, theme, onSaveSettings, onBa
               id="local-save-path"
               value={localSavePath}
               onChange={(e) => setLocalSavePath(e.target.value)}
-              placeholder="e.g., C:\Users\YourName\Documents\Notes or ~/Documents/Notes"
+              placeholder="Click 'Browse' to select a directory"
               className="folder-select"
+              readOnly
             />
             <button 
               className="select-path-btn" 
               onClick={handleSelectSavePath}
-              title="Enter Save Path"
+              title="Browse for directory"
             >
-              <FaFolder />
+              <FaFolder /> Browse
             </button>
           </div>
           <p className="setting-description">
-            Specify the default directory path where notes will be saved when exported. Leave empty to use downloads folder.
+            Click "Browse" to select the directory where notes will be saved when exported. You'll need to grant permission each time you save.
           </p>
         </div>
         

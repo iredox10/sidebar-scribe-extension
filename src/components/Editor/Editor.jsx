@@ -18,14 +18,16 @@ const Editor = ({
   const isDark = theme === 'dark';
   const editorRef = useRef(null);
   const [editorKey, setEditorKey] = React.useState(0);
+  const prevNoteIdRef = useRef(null);
   
-  // Force re-render when noteContent changes externally
+  // Only force re-render when switching to a different note, not on content changes
   useEffect(() => {
-    if (selectedNote) {
-      console.log("📝 Note content changed, forcing editor re-render");
+    if (selectedNote && selectedNote.id !== prevNoteIdRef.current) {
+      console.log("📝 Switched to different note, forcing editor re-render");
       setEditorKey(prev => prev + 1);
+      prevNoteIdRef.current = selectedNote.id;
     }
-  }, [noteContent, selectedNote]);
+  }, [selectedNote]);
   
   const editorOptions = {
     height: '80vh',
