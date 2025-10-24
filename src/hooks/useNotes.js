@@ -82,7 +82,15 @@ export const useNotes = () => {
   };
 
     const handleCreateNote = (noteName, folderId = null, defaultFolderId = null) => {
-    if (!noteName) noteName = `Note - ${uuidv4().slice(0, 8)}`;
+    if (!noteName) {
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric', 
+        year: 'numeric' 
+      });
+      noteName = `Note - ${dateStr}`;
+    }
     
     const targetFolderId = folderId || defaultFolderId || null;
     

@@ -19,7 +19,7 @@ chrome.action.onClicked.addListener(async (tab) => {
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
     id: "createNote",
-    title: "Create note with selected text",
+    title: "Add to note / Create new note",
     contexts: ["selection"]
   });
 });

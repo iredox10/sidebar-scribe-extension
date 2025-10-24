@@ -1,15 +1,26 @@
 import React, { useEffect } from 'react';
-import { v4 as uuidv4 } from 'uuid';
 
 const MessageListener = ({ 
-  onCreateNoteFromSelection, 
+  onCreateNoteFromSelection,
+  onAppendToCurrentNote,
+  currentNote,
   defaultFolderId 
 }) => {
   useEffect(() => {
     const messageListener = (message, sender, sendResponse) => {
       if (message.action === "createNoteFromSelection") {
         const { text } = message;
-        const noteName = `Selection - ${uuidv4().slice(0, 8)}`;
+        
+        // Always create a new note
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('en-US', { 
+          month: 'short', 
+          day: 'numeric', 
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+        const noteName = `Selection - ${dateStr}`;
         
         const newNote = {
           id: Date.now().toString(),
@@ -21,6 +32,42 @@ const MessageListener = ({
         };
         
         onCreateNoteFromSelection(newNote);
+      } else if (message.action === "appendToCurrentNote") {
+        const { text } = message;
+        
+        console.log("📝 Append to current note action triggered");
+        console.log("Current note:", currentNote);
+        console.log("Text to append:", text);
+        
+        // Append to current note if one is selected
+        if (currentNote && onAppendToCurrentNote) {
+          console.log("✅ Appending to current note:", currentNote.name);
+          onAppendToCurrentNote(text);
+        } else {
+          // If no note is selected, show a notification or create a new note
+          console.log("⚠️ No note selected. Creating a new note instead.");
+          // Optionally, you could create a new note instead
+          const now = new Date();
+          const dateStr = now.toLocaleDateString('en-US', { 
+            month: 'short', 
+            day: 'numeric', 
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          });
+          const noteName = `Selection - ${dateStr}`;
+          
+          const newNote = {
+            id: Date.now().toString(),
+            name: noteName,
+            content: text,
+            folderId: defaultFolderId || null,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          };
+          
+          onCreateNoteFromSelection(newNote);
+        }
       }
     };
 
@@ -29,7 +76,7 @@ const MessageListener = ({
     return () => {
       chrome.runtime.onMessage.removeListener(messageListener);
     };
-  }, [defaultFolderId, onCreateNoteFromSelection]);
+  }, [defaultFolderId, currentNote, onCreateNoteFromSelection, onAppendToCurrentNote]);
 
   return null; // This component doesn't render anything
 };

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import SunEditor from 'suneditor-react';
 import 'suneditor/dist/css/suneditor.min.css';
 import EditorHeader from './EditorHeader';
@@ -16,6 +16,16 @@ const Editor = ({
   theme = 'light'
 }) => {
   const isDark = theme === 'dark';
+  const editorRef = useRef(null);
+  const [editorKey, setEditorKey] = React.useState(0);
+  
+  // Force re-render when noteContent changes externally
+  useEffect(() => {
+    if (selectedNote) {
+      console.log("📝 Note content changed, forcing editor re-render");
+      setEditorKey(prev => prev + 1);
+    }
+  }, [noteContent, selectedNote]);
   
   const editorOptions = {
     height: 'auto',
@@ -64,25 +74,18 @@ const Editor = ({
             onSaveToFile={onSaveToFile}
           />
           <SunEditor
-            key={`${selectedNote.id}-${theme}`}
+            ref={editorRef}
+            key={`${selectedNote.id}-${theme}-${editorKey}`}
             defaultValue={noteContent}
             onChange={onUpdateContent}
             setOptions={editorOptions}
           />
         </div>
       ) : (
-        <>
-          <WelcomeMessage
-            onCreateNote={onQuickCreateNote}
-            onLoadFromFile={onLoadFromFile}
-          />
-          <SunEditor
-            key={`new-note-${theme}`}
-            defaultValue=""
-            onChange={onUpdateContent}
-            setOptions={editorOptions}
-          />
-        </>
+        <WelcomeMessage
+          onCreateNote={onQuickCreateNote}
+          onLoadFromFile={onLoadFromFile}
+        />
       )}
     </div>
   );

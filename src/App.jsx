@@ -86,6 +86,40 @@ function App() {
       uiState.closeSidebar();
     };
 
+    const handleAppendToCurrentNote = (text) => {
+      console.log("🔧 handleAppendToCurrentNote called");
+      console.log("Selected note:", notesState.selectedNote);
+      console.log("Current content length:", noteContent.length);
+      console.log("Text to append:", text);
+      
+      if (notesState.selectedNote) {
+        // Append the text to the current note content with formatting
+        const separator = noteContent.trim() ? '\n\n---\n\n' : '';
+        const timestamp = new Date().toLocaleString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+        const formattedText = `${separator}**Added on ${timestamp}:**\n\n${text}`;
+        const newContent = noteContent + formattedText;
+        
+        console.log("✅ New content created, length:", newContent.length);
+        console.log("First 100 chars:", newContent.substring(0, 100));
+        
+        // Update local state first
+        setNoteContent(newContent);
+        
+        // Then update the note in storage
+        notesState.handleUpdateNoteContent(newContent);
+        
+        console.log("✅ Content update completed");
+      } else {
+        console.log("❌ No note selected, cannot append");
+      }
+    };
+
     const appContent = (
       <>
         <Header 
@@ -175,6 +209,8 @@ function App() {
       <div className="app">
         <MessageListener 
           onCreateNoteFromSelection={handleCreateNoteFromSelection}
+          onAppendToCurrentNote={handleAppendToCurrentNote}
+          currentNote={notesState.selectedNote}
           defaultFolderId={settingsState.settings.defaultFolder}
         />
         
