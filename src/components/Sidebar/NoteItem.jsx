@@ -45,6 +45,11 @@ const NoteItem = ({
             <span className="item-name">{note.name}</span>
             <button 
               className="edit-name-btn" 
+              onMouseDown={(e) => {
+                // Prevent the mousedown from blurring any currently focused input
+                e.preventDefault();
+                e.stopPropagation();
+              }}
               onClick={(e) => {
                 e.stopPropagation();
                 onStartEdit(note.id, note.name);

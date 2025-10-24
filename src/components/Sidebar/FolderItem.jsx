@@ -65,6 +65,10 @@ const FolderItem = ({
               <span className="item-name">{folder.name}</span>
               <button 
                 className="edit-name-btn" 
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
                 onClick={(e) => {
                   e.stopPropagation();
                   onStartEdit(folder.id, folder.name);
