@@ -3,6 +3,7 @@ import './App.css';
 import Header from './components/Header/Header.jsx';
 import Sidebar from './components/Sidebar/Sidebar.jsx';
 import Editor from './components/Editor/Editor.jsx';
+import SettingsPage from './components/SettingsPage.jsx';
 import MessageListener from './components/UI/MessageListener.jsx';
 import FloatingWindow from './components/UI/FloatingWindow.jsx';
 import { useNotes } from './hooks/useNotes.js';
@@ -120,7 +121,18 @@ function App() {
       }
     };
 
-    const appContent = (
+    const appContent = uiState.view === 'settings' ? (
+      <SettingsPage
+        folders={notesState.folders}
+        defaultFolder={settingsState.settings.defaultFolder}
+        theme={settingsState.settings.theme}
+        onSaveSettings={(newSettings) => {
+          settingsState.updateSettings(newSettings);
+          uiState.setView('main');
+        }}
+        onBack={() => uiState.setView('main')}
+      />
+    ) : (
       <>
         <Header 
           selectedNote={notesState.selectedNote}

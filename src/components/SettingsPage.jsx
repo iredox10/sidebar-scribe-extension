@@ -1,24 +1,69 @@
 import { useState, useEffect } from 'react';
-import { FaSave, FaArrowLeft, FaMoon, FaSun, FaFolder, FaDesktop } from 'react-icons/fa';
+import { FaSave, FaArrowLeft, FaMoon, FaSun, FaFolder, FaDesktop, FaFileAlt, FaClock, FaDownload } from 'react-icons/fa';
 import '../App.css';
 
 const SettingsPage = ({ folders = [], defaultFolder, theme, onSaveSettings, onBack }) => {
   const [selectedFolder, setSelectedFolder] = useState(defaultFolder || '');
   const [selectedTheme, setSelectedTheme] = useState(theme || 'light');
   const [localSavePath, setLocalSavePath] = useState('');
-  const [showPathSelector, setShowPathSelector] = useState(false);
+  const [autoSave, setAutoSave] = useState(true);
+  const [autoSaveInterval, setAutoSaveInterval] = useState(30);
+  const [dateFormat, setDateFormat] = useState('short');
+  const [defaultFileFormat, setDefaultFileFormat] = useState('md');
+  const [showLineNumbers, setShowLineNumbers] = useState(false);
 
   useEffect(() => {
-    setSelectedFolder(defaultFolder || '');
-    setSelectedTheme(theme || 'light');
+    // Load settings from storage
+    const loadSettings = async () => {
+      try {
+        const result = await chrome.storage.local.get([
+          'defaultFolder',
+          'theme',
+          'localSavePath',
+          'autoSave',
+          'autoSaveInterval',
+          'dateFormat',
+          'defaultFileFormat',
+          'showLineNumbers'
+        ]);
+        
+        setSelectedFolder(result.defaultFolder || defaultFolder || '');
+        setSelectedTheme(result.theme || theme || 'light');
+        setLocalSavePath(result.localSavePath || '');
+        setAutoSave(result.autoSave !== undefined ? result.autoSave : true);
+        setAutoSaveInterval(result.autoSaveInterval || 30);
+        setDateFormat(result.dateFormat || 'short');
+        setDefaultFileFormat(result.defaultFileFormat || 'md');
+        setShowLineNumbers(result.showLineNumbers || false);
+      } catch (error) {
+        console.error('Error loading settings:', error);
+      }
+    };
+    
+    loadSettings();
   }, [defaultFolder, theme]);
 
-  const handleSave = () => {
-    onSaveSettings({ 
+  const handleSave = async () => {
+    const settings = { 
       defaultFolder: selectedFolder,
       theme: selectedTheme,
-      localSavePath: localSavePath
-    });
+      localSavePath: localSavePath,
+      autoSave: autoSave,
+      autoSaveInterval: autoSaveInterval,
+      dateFormat: dateFormat,
+      defaultFileFormat: defaultFileFormat,
+      showLineNumbers: showLineNumbers
+    };
+    
+    // Save to chrome storage
+    try {
+      await chrome.storage.local.set(settings);
+      console.log('✅ Settings saved:', settings);
+    } catch (error) {
+      console.error('Error saving settings:', error);
+    }
+    
+    onSaveSettings(settings);
   };
 
   const handleSelectSavePath = async () => {
@@ -44,8 +89,11 @@ const SettingsPage = ({ folders = [], defaultFolder, theme, onSaveSettings, onBa
       </div>
       
       <div className="settings-content">
+        {/* Default Folder */}
         <div className="setting-group">
-          <label htmlFor="default-folder">Default Folder for New Notes</label>
+          <label htmlFor="default-folder">
+            <FaFolder /> Default Folder for New Notes
+          </label>
           <select 
             id="default-folder"
             value={selectedFolder}
@@ -64,43 +112,130 @@ const SettingsPage = ({ folders = [], defaultFolder, theme, onSaveSettings, onBa
           </p>
         </div>
         
+        {/* Theme */}
         <div className="setting-group">
-          <label htmlFor="theme-selector">Theme</label>
+          <label htmlFor="theme-selector">
+            {selectedTheme === 'dark' ? <FaMoon /> : <FaSun />} Theme
+          </label>
           <select 
             id="theme-selector"
             value={selectedTheme}
             onChange={(e) => setSelectedTheme(e.target.value)}
             className="theme-select"
           >
-            <option value="light">Light</option>
-            <option value="dark">Dark</option>
+            <option value="light">☀️ Light</option>
+            <option value="dark">🌙 Dark</option>
           </select>
           <p className="setting-description">
             Choose between light and dark theme for the application.
           </p>
         </div>
         
+        {/* Local Save Path */}
         <div className="setting-group">
-          <label htmlFor="local-save-path">Local Save Path</label>
+          <label htmlFor="local-save-path">
+            <FaDownload /> Local Save Directory
+          </label>
           <div className="path-selector">
             <input
               type="text"
               id="local-save-path"
               value={localSavePath}
               onChange={(e) => setLocalSavePath(e.target.value)}
-              placeholder="Enter path for local saves (e.g., ~/Documents/Notes)"
+              placeholder="e.g., C:\Users\YourName\Documents\Notes or ~/Documents/Notes"
               className="folder-select"
             />
             <button 
               className="select-path-btn" 
               onClick={handleSelectSavePath}
-              title="Select Save Path"
+              title="Enter Save Path"
             >
               <FaFolder />
             </button>
           </div>
           <p className="setting-description">
-            Specify the default path where notes will be saved locally. Leave empty to use downloads folder.
+            Specify the default directory path where notes will be saved when exported. Leave empty to use downloads folder.
+          </p>
+        </div>
+        
+        {/* Default File Format */}
+        <div className="setting-group">
+          <label htmlFor="file-format">
+            <FaFileAlt /> Default Export Format
+          </label>
+          <select 
+            id="file-format"
+            value={defaultFileFormat}
+            onChange={(e) => setDefaultFileFormat(e.target.value)}
+            className="theme-select"
+          >
+            <option value="md">📝 Markdown (.md)</option>
+            <option value="txt">📄 Plain Text (.txt)</option>
+            <option value="html">🌐 HTML (.html)</option>
+          </select>
+          <p className="setting-description">
+            Choose the default file format when saving notes locally.
+          </p>
+        </div>
+        
+        {/* Auto Save */}
+        <div className="setting-group">
+          <label htmlFor="auto-save">
+            <FaClock /> Auto Save
+          </label>
+          <div className="checkbox-group">
+            <input
+              type="checkbox"
+              id="auto-save"
+              checked={autoSave}
+              onChange={(e) => setAutoSave(e.target.checked)}
+            />
+            <label htmlFor="auto-save">Enable auto-save</label>
+          </div>
+          <p className="setting-description">
+            Automatically save changes as you type.
+          </p>
+        </div>
+        
+        {/* Auto Save Interval */}
+        {autoSave && (
+          <div className="setting-group">
+            <label htmlFor="auto-save-interval">
+              <FaClock /> Auto Save Interval (seconds)
+            </label>
+            <input
+              type="number"
+              id="auto-save-interval"
+              value={autoSaveInterval}
+              onChange={(e) => setAutoSaveInterval(parseInt(e.target.value) || 30)}
+              min="5"
+              max="300"
+              className="folder-select"
+            />
+            <p className="setting-description">
+              How often to automatically save changes (5-300 seconds).
+            </p>
+          </div>
+        )}
+        
+        {/* Date Format */}
+        <div className="setting-group">
+          <label htmlFor="date-format">
+            <FaClock /> Date Format
+          </label>
+          <select 
+            id="date-format"
+            value={dateFormat}
+            onChange={(e) => setDateFormat(e.target.value)}
+            className="theme-select"
+          >
+            <option value="short">Short (Jan 1, 2025)</option>
+            <option value="long">Long (January 1, 2025)</option>
+            <option value="iso">ISO (2025-01-01)</option>
+            <option value="full">Full (Monday, January 1, 2025)</option>
+          </select>
+          <p className="setting-description">
+            Choose how dates are displayed in note names and timestamps.
           </p>
         </div>
         
