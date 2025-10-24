@@ -19,15 +19,37 @@ const Editor = ({
   const editorRef = useRef(null);
   const [editorKey, setEditorKey] = React.useState(0);
   const prevNoteIdRef = useRef(null);
+  const prevContentLengthRef = useRef(0);
+  const isUserTypingRef = useRef(false);
   
-  // Only force re-render when switching to a different note, not on content changes
+  // Detect when content changes externally (e.g., from append) vs user typing
   useEffect(() => {
-    if (selectedNote && selectedNote.id !== prevNoteIdRef.current) {
+    const noteChanged = selectedNote && selectedNote.id !== prevNoteIdRef.current;
+    
+    if (noteChanged) {
       console.log("📝 Switched to different note, forcing editor re-render");
       setEditorKey(prev => prev + 1);
       prevNoteIdRef.current = selectedNote.id;
+      prevContentLengthRef.current = noteContent.length;
+      isUserTypingRef.current = false;
+    } else if (!isUserTypingRef.current && noteContent.length !== prevContentLengthRef.current) {
+      // Content changed but not from user typing - must be external (append)
+      console.log("📝 External content change detected (append), re-rendering editor");
+      setEditorKey(prev => prev + 1);
+      prevContentLengthRef.current = noteContent.length;
     }
-  }, [selectedNote]);
+  }, [selectedNote, noteContent]);
+  
+  // Wrap onChange to track user typing
+  const handleChange = (content) => {
+    isUserTypingRef.current = true;
+    prevContentLengthRef.current = content.length;
+    onUpdateContent(content);
+    // Reset flag after a short delay
+    setTimeout(() => {
+      isUserTypingRef.current = false;
+    }, 100);
+  };
   
   const editorOptions = {
     height: '80vh',
@@ -72,7 +94,7 @@ const Editor = ({
             ref={editorRef}
             key={`${selectedNote.id}-${theme}-${editorKey}`}
             defaultValue={noteContent}
-            onChange={onUpdateContent}
+            onChange={handleChange}
             setOptions={editorOptions}
           />
         </div>
