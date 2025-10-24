@@ -151,8 +151,9 @@ function App() {
       console.log("Text to append:", text);
       
       if (notesState.selectedNote) {
-        // Append the text to the current note content as-is
-        const separator = noteContent.trim() ? '\n\n' : '';
+        // Append the text to the current note content on a new line
+        // Use HTML breaks since SunEditor stores content as HTML
+        const separator = noteContent.trim() ? '<br><br>' : '';
         const newContent = noteContent + separator + text;
         
         console.log("✅ New content created, length:", newContent.length);
