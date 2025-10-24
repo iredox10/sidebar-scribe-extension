@@ -16,15 +16,20 @@ const NotesSection = ({
   onEditingNoteNameChange,
   onSaveNoteEdit,
   icon = null,
-  showTitle = true
+  showTitle = true,
+  limit = null,
+  onShowMore = null
 }) => {
   if (notes.length === 0) return null;
+
+  const displayedNotes = limit ? notes.slice(0, limit) : notes;
+  const hasMore = limit && notes.length > limit;
 
   return (
     <div className="explorer-section">
       {showTitle && <h3>{icon && <span className="section-icon">{icon}</span>} {title}</h3>}
       <ul className="notes-list">
-        {notes.map(note => (
+        {displayedNotes.map(note => (
           <NoteItem
             key={note.id}
             note={note}
@@ -41,6 +46,11 @@ const NotesSection = ({
           />
         ))}
       </ul>
+      {hasMore && onShowMore && (
+        <button className="show-more-btn" onClick={onShowMore}>
+          Show More ({notes.length - limit} more)
+        </button>
+      )}
     </div>
   );
 };

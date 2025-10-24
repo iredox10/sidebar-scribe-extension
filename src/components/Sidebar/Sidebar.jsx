@@ -31,7 +31,10 @@ const Sidebar = ({
   getFavoriteNotes,
   getRecentNotes,
   getRootNotes,
-  getNotesByFolder
+  getNotesByFolder,
+  onShowMoreRecent,
+  onShowMoreRoot,
+  onShowMoreFolders
 }) => {
   if (!show) return null;
 
@@ -104,6 +107,8 @@ const Sidebar = ({
           editingNoteName={editingNoteName}
           onEditingNoteNameChange={onEditingNoteNameChange}
           onSaveNoteEdit={onSaveNoteEdit}
+          limit={3}
+          onShowMore={onShowMoreRecent}
         />
 
         {/* Root Notes */}
@@ -131,6 +136,8 @@ const Sidebar = ({
             onEditingNoteNameChange={onEditingNoteNameChange}
             onSaveNoteEdit={onSaveNoteEdit}
             showTitle={false}
+            limit={3}
+            onShowMore={onShowMoreRoot}
           />
         </div>
 
@@ -146,7 +153,7 @@ const Sidebar = ({
               <FaPlus />
             </button>
           </div>
-          {folders.map(folder => (
+          {folders.slice(0, 3).map(folder => (
             <FolderItem
               key={folder.id}
               folder={folder}
@@ -172,6 +179,11 @@ const Sidebar = ({
               onSaveNoteEdit={onSaveNoteEdit}
             />
           ))}
+          {folders.length > 3 && (
+            <button className="show-more-btn" onClick={onShowMoreFolders}>
+              Show More ({folders.length - 3} more)
+            </button>
+          )}
         </div>
       </div>
     </div>

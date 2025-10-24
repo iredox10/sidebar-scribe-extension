@@ -4,6 +4,7 @@ import Header from './components/Header/Header.jsx';
 import Sidebar from './components/Sidebar/Sidebar.jsx';
 import Editor from './components/Editor/Editor.jsx';
 import SettingsPage from './components/SettingsPage.jsx';
+import AllNotesView from './components/AllNotesView.jsx';
 import MessageListener from './components/UI/MessageListener.jsx';
 import FloatingWindow from './components/UI/FloatingWindow.jsx';
 import { useNotes } from './hooks/useNotes.js';
@@ -132,6 +133,44 @@ function App() {
         }}
         onBack={() => uiState.setView('main')}
       />
+    ) : uiState.view === 'all-notes' ? (
+      <AllNotesView
+        category={uiState.notesViewCategory}
+        notes={uiState.notesViewCategory === 'recent' ? notesState.getRecentNotes() : 
+               uiState.notesViewCategory === 'root' ? notesState.getRootNotes() : []}
+        folders={uiState.notesViewCategory === 'folders' ? notesState.folders : []}
+        selectedNote={notesState.selectedNote}
+        favorites={notesState.favorites}
+        onSelectNote={handleNoteSelect}
+        onToggleFavorite={notesState.toggleFavorite}
+        onDeleteNote={notesState.handleDeleteNote}
+        onStartEditNote={editingState.startEditingNoteName}
+        editingNoteId={editingState.editingNoteId}
+        editingNoteName={editingState.editingNoteName}
+        onEditingNoteNameChange={editingState.setEditingNoteName}
+        onSaveNoteEdit={() => {
+          if (editingState.editingNoteId && editingState.editingNoteName.trim()) {
+            notesState.handleUpdateNoteName(editingState.editingNoteId, editingState.editingNoteName);
+          }
+          editingState.cancelEditing();
+        }}
+        onBack={uiState.backToMain}
+        expandedFolders={uiState.expandedFolders}
+        onToggleFolder={uiState.toggleFolder}
+        getNotesByFolder={notesState.getNotesByFolder}
+        onDeleteFolder={notesState.handleDeleteFolder}
+        onStartEditFolder={editingState.startEditingFolderName}
+        editingFolderId={editingState.editingFolderId}
+        editingFolderName={editingState.editingFolderName}
+        onEditingFolderNameChange={editingState.setEditingFolderName}
+        onSaveFolderEdit={() => {
+          if (editingState.editingFolderId && editingState.editingFolderName.trim()) {
+            notesState.handleUpdateFolderName(editingState.editingFolderId, editingState.editingFolderName);
+          }
+          editingState.cancelEditing();
+        }}
+        onCreateNote={notesState.handleCreateNote}
+      />
     ) : (
       <>
         <Header 
@@ -200,6 +239,9 @@ function App() {
             getRecentNotes={notesState.getRecentNotes}
             getRootNotes={notesState.getRootNotes}
             getNotesByFolder={notesState.getNotesByFolder}
+            onShowMoreRecent={() => uiState.showAllNotes('recent')}
+            onShowMoreRoot={() => uiState.showAllNotes('root')}
+            onShowMoreFolders={() => uiState.showAllNotes('folders')}
           />
 
           <Editor

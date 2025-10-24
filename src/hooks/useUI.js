@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 
 export const useUI = () => {
   const [showSidebar, setShowSidebar] = useState(false);
-  const [view, setView] = useState('main'); // 'main' or 'settings'
+  const [view, setView] = useState('main'); // 'main', 'settings', or 'all-notes'
+  const [notesViewCategory, setNotesViewCategory] = useState(null); // 'recent' or 'root'
   const [showSearch, setShowSearch] = useState(false);
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
   const [showMoreActions, setShowMoreActions] = useState(false);
@@ -53,6 +54,16 @@ export const useUI = () => {
     setIsFloatingPinned(prev => !prev);
   };
 
+  const showAllNotes = (category) => {
+    setNotesViewCategory(category);
+    setView('all-notes');
+  };
+
+  const backToMain = () => {
+    setView('main');
+    setNotesViewCategory(null);
+  };
+
   return {
     showSidebar,
     setShowSidebar,
@@ -60,6 +71,9 @@ export const useUI = () => {
     closeSidebar,
     view,
     setView,
+    notesViewCategory,
+    showAllNotes,
+    backToMain,
     showSearch,
     setShowSearch,
     showSearchDropdown,
