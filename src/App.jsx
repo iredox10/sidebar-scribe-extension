@@ -334,6 +334,7 @@ function App() {
             onQuickCreateNote={quickCreateNote}
             onLoadFromFile={fileOpsState.loadFromLocalFile}
             theme={settingsState.settings.theme}
+            enabledTools={settingsState.settings.editorTools || []}
           />
         </div>
       </>

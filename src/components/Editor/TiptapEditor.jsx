@@ -5,10 +5,25 @@ import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
 import { CustomDiv } from './CustomDiv';
 import { CustomButton } from './CustomButton';
+import { 
+  FaBold, 
+  FaItalic, 
+  FaStrikethrough, 
+  FaHeading, 
+  FaListUl, 
+  FaListOl, 
+  FaQuoteRight, 
+  FaCode,
+  FaMinus
+} from 'react-icons/fa';
 import './TiptapEditor.css';
 
-const TiptapEditor = ({ content, onChange, theme = 'light' }) => {
+const TiptapEditor = ({ content, onChange, theme = 'light', enabledTools = [] }) => {
   const editorContainerRef = useRef(null);
+
+  // Default tools if none specified
+  const defaultTools = ['bold', 'italic', 'strike', 'h1', 'h2', 'h3', 'bulletList', 'orderedList', 'blockquote', 'codeBlock', 'hr'];
+  const activeTools = enabledTools.length > 0 ? enabledTools : defaultTools;
 
   const editor = useEditor({
     extensions: [
@@ -125,113 +140,130 @@ const TiptapEditor = ({ content, onChange, theme = 'light' }) => {
   return (
     <div className={`tiptap-wrapper ${theme === 'dark' ? 'dark' : ''}`}>
       <div className="tiptap-toolbar">
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleBold().run()}
-          className={editor.isActive('bold') ? 'is-active' : ''}
-          title="Bold"
-        >
-          <strong>B</strong>
-        </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleItalic().run()}
-          className={editor.isActive('italic') ? 'is-active' : ''}
-          title="Italic"
-        >
-          <em>I</em>
-        </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleStrike().run()}
-          className={editor.isActive('strike') ? 'is-active' : ''}
-          title="Strikethrough"
-        >
-          <s>S</s>
-        </button>
-        <div className="toolbar-divider"></div>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-          className={editor.isActive('heading', { level: 1 }) ? 'is-active' : ''}
-          title="Heading 1"
-        >
-          H1
-        </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-          className={editor.isActive('heading', { level: 2 }) ? 'is-active' : ''}
-          title="Heading 2"
-        >
-          H2
-        </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-          className={editor.isActive('heading', { level: 3 }) ? 'is-active' : ''}
-          title="Heading 3"
-        >
-          H3
-        </button>
-        <div className="toolbar-divider"></div>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleBulletList().run()}
-          className={editor.isActive('bulletList') ? 'is-active' : ''}
-          title="Bullet List"
-        >
-          • List
-        </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleOrderedList().run()}
-          className={editor.isActive('orderedList') ? 'is-active' : ''}
-          title="Numbered List"
-        >
-          1. List
-        </button>
-        <div className="toolbar-divider"></div>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleBlockquote().run()}
-          className={editor.isActive('blockquote') ? 'is-active' : ''}
-          title="Blockquote"
-        >
-          " Quote
-        </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-          className={editor.isActive('codeBlock') ? 'is-active' : ''}
-          title="Code Block"
-        >
-          {'</>'}
-        </button>
-        <div className="toolbar-divider"></div>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().setHorizontalRule().run()}
-          title="Horizontal Rule"
-        >
-          ―
-        </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().undo().run()}
-          disabled={!editor.can().undo()}
-          title="Undo"
-        >
-          ↶
-        </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().redo().run()}
-          disabled={!editor.can().redo()}
-          title="Redo"
-        >
-          ↷
-        </button>
+        {activeTools.includes('bold') && (
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().toggleBold().run()}
+            className={editor.isActive('bold') ? 'is-active' : ''}
+            title="Bold (Ctrl+B)"
+          >
+            <FaBold />
+          </button>
+        )}
+        {activeTools.includes('italic') && (
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().toggleItalic().run()}
+            className={editor.isActive('italic') ? 'is-active' : ''}
+            title="Italic (Ctrl+I)"
+          >
+            <FaItalic />
+          </button>
+        )}
+        {activeTools.includes('strike') && (
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().toggleStrike().run()}
+            className={editor.isActive('strike') ? 'is-active' : ''}
+            title="Strikethrough"
+          >
+            <FaStrikethrough />
+          </button>
+        )}
+        
+        {(activeTools.includes('h1') || activeTools.includes('h2') || activeTools.includes('h3')) && (
+          <div className="toolbar-divider"></div>
+        )}
+        
+        {activeTools.includes('h1') && (
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+            className={editor.isActive('heading', { level: 1 }) ? 'is-active' : ''}
+            title="Heading 1"
+          >
+            <FaHeading /><sub>1</sub>
+          </button>
+        )}
+        {activeTools.includes('h2') && (
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+            className={editor.isActive('heading', { level: 2 }) ? 'is-active' : ''}
+            title="Heading 2"
+          >
+            <FaHeading /><sub>2</sub>
+          </button>
+        )}
+        {activeTools.includes('h3') && (
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+            className={editor.isActive('heading', { level: 3 }) ? 'is-active' : ''}
+            title="Heading 3"
+          >
+            <FaHeading /><sub>3</sub>
+          </button>
+        )}
+        
+        {(activeTools.includes('bulletList') || activeTools.includes('orderedList')) && (
+          <div className="toolbar-divider"></div>
+        )}
+        
+        {activeTools.includes('bulletList') && (
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().toggleBulletList().run()}
+            className={editor.isActive('bulletList') ? 'is-active' : ''}
+            title="Bullet List"
+          >
+            <FaListUl />
+          </button>
+        )}
+        {activeTools.includes('orderedList') && (
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().toggleOrderedList().run()}
+            className={editor.isActive('orderedList') ? 'is-active' : ''}
+            title="Numbered List"
+          >
+            <FaListOl />
+          </button>
+        )}
+        
+        {(activeTools.includes('blockquote') || activeTools.includes('codeBlock') || activeTools.includes('hr')) && (
+          <div className="toolbar-divider"></div>
+        )}
+        
+        {activeTools.includes('blockquote') && (
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().toggleBlockquote().run()}
+            className={editor.isActive('blockquote') ? 'is-active' : ''}
+            title="Blockquote"
+          >
+            <FaQuoteRight />
+          </button>
+        )}
+        {activeTools.includes('codeBlock') && (
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+            className={editor.isActive('codeBlock') ? 'is-active' : ''}
+            title="Code Block"
+          >
+            <FaCode />
+          </button>
+        )}
+        {activeTools.includes('hr') && (
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().setHorizontalRule().run()}
+            title="Horizontal Line"
+          >
+            <FaMinus />
+          </button>
+        )}
       </div>
       <div ref={editorContainerRef}>
         <EditorContent editor={editor} />

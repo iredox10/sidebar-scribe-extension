@@ -12,7 +12,8 @@ const Editor = ({
   onSaveToFile,
   onQuickCreateNote,
   onLoadFromFile,
-  theme = 'light'
+  theme = 'light',
+  enabledTools = []
 }) => {
   const [editorKey, setEditorKey] = React.useState(0);
   const prevNoteIdRef = useRef(null);
@@ -41,6 +42,7 @@ const Editor = ({
             content={noteContent}
             onChange={onUpdateContent}
             theme={theme}
+            enabledTools={enabledTools}
           />
         </div>
       ) : (

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FaSave, FaArrowLeft, FaMoon, FaSun, FaFolder, FaDesktop, FaFileAlt, FaClock, FaDownload } from 'react-icons/fa';
+import { FaSave, FaArrowLeft, FaMoon, FaSun, FaFolder, FaDesktop, FaFileAlt, FaClock, FaDownload, FaEdit } from 'react-icons/fa';
 import '../App.css';
 
 const SettingsPage = ({ folders = [], defaultFolder, theme, onSaveSettings, onBack }) => {
@@ -12,6 +12,7 @@ const SettingsPage = ({ folders = [], defaultFolder, theme, onSaveSettings, onBa
   const [defaultFileFormat, setDefaultFileFormat] = useState('md');
   const [showLineNumbers, setShowLineNumbers] = useState(false);
   const [showMetadataOnAppend, setShowMetadataOnAppend] = useState(true);
+  const [editorTools, setEditorTools] = useState(['bold', 'italic', 'strike', 'h1', 'h2', 'h3', 'bulletList', 'orderedList', 'blockquote', 'codeBlock', 'hr']);
 
   useEffect(() => {
     // Load settings from storage
@@ -26,7 +27,8 @@ const SettingsPage = ({ folders = [], defaultFolder, theme, onSaveSettings, onBa
           'dateFormat',
           'defaultFileFormat',
           'showLineNumbers',
-          'showMetadataOnAppend'
+          'showMetadataOnAppend',
+          'editorTools'
         ]);
         
         setSelectedFolder(result.defaultFolder || defaultFolder || '');
@@ -38,6 +40,7 @@ const SettingsPage = ({ folders = [], defaultFolder, theme, onSaveSettings, onBa
         setDefaultFileFormat(result.defaultFileFormat || 'md');
         setShowLineNumbers(result.showLineNumbers || false);
         setShowMetadataOnAppend(result.showMetadataOnAppend !== undefined ? result.showMetadataOnAppend : true);
+        setEditorTools(result.editorTools || ['bold', 'italic', 'strike', 'h1', 'h2', 'h3', 'bulletList', 'orderedList', 'blockquote', 'codeBlock', 'hr']);
       } catch (error) {
         console.error('Error loading settings:', error);
       }
@@ -56,7 +59,8 @@ const SettingsPage = ({ folders = [], defaultFolder, theme, onSaveSettings, onBa
       dateFormat: dateFormat,
       defaultFileFormat: defaultFileFormat,
       showLineNumbers: showLineNumbers,
-      showMetadataOnAppend: showMetadataOnAppend
+      showMetadataOnAppend: showMetadataOnAppend,
+      editorTools: editorTools
     };
     
     // Save to chrome storage
@@ -288,6 +292,47 @@ const SettingsPage = ({ folders = [], defaultFolder, theme, onSaveSettings, onBa
           <p className="setting-description">
             When enabled, appended text selections will include a "View source" link showing the date, website, and URL. When disabled, only the selected text will be added.
           </p>
+        </div>
+        
+        {/* Editor Tools */}
+        <div className="setting-group">
+          <label>
+            <FaEdit /> Editor Toolbar Tools
+          </label>
+          <p className="setting-description" style={{ marginBottom: '12px' }}>
+            Select which formatting tools to show in the editor toolbar:
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '8px' }}>
+            {[
+              { id: 'bold', label: 'Bold' },
+              { id: 'italic', label: 'Italic' },
+              { id: 'strike', label: 'Strikethrough' },
+              { id: 'h1', label: 'Heading 1' },
+              { id: 'h2', label: 'Heading 2' },
+              { id: 'h3', label: 'Heading 3' },
+              { id: 'bulletList', label: 'Bullet List' },
+              { id: 'orderedList', label: 'Numbered List' },
+              { id: 'blockquote', label: 'Blockquote' },
+              { id: 'codeBlock', label: 'Code Block' },
+              { id: 'hr', label: 'Horizontal Line' }
+            ].map(tool => (
+              <div key={tool.id} className="checkbox-group" style={{ marginBottom: '4px' }}>
+                <input
+                  type="checkbox"
+                  id={`tool-${tool.id}`}
+                  checked={editorTools.includes(tool.id)}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setEditorTools([...editorTools, tool.id]);
+                    } else {
+                      setEditorTools(editorTools.filter(t => t !== tool.id));
+                    }
+                  }}
+                />
+                <label htmlFor={`tool-${tool.id}`}>{tool.label}</label>
+              </div>
+            ))}
+          </div>
         </div>
         
         <button className="save-settings-btn" onClick={handleSave}>

@@ -4,7 +4,8 @@ export const useSettings = () => {
   const [settings, setSettings] = useState({ 
     defaultFolder: '', 
     theme: 'light',
-    showMetadataOnAppend: true  // Show metadata by default when appending selections
+    showMetadataOnAppend: true,  // Show metadata by default when appending selections
+    editorTools: ['bold', 'italic', 'strike', 'h1', 'h2', 'h3', 'bulletList', 'orderedList', 'blockquote', 'codeBlock', 'hr'] // Default enabled tools
   });
 
   // Load settings
