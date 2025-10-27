@@ -1,0 +1,299 @@
+/* Tiptap Editor Styles */
+.tiptap-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--bg-secondary);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+}
+
+.tiptap-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 8px;
+  background: var(--bg-tertiary);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.tiptap-toolbar button {
+  padding: 6px 10px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  min-width: 32px;
+}
+
+.tiptap-toolbar button:hover:not(:disabled) {
+  background: var(--bg-hover);
+  border-color: var(--accent-primary);
+}
+
+.tiptap-toolbar button.is-active {
+  background: var(--accent-primary);
+  color: white;
+  border-color: var(--accent-primary);
+}
+
+.tiptap-toolbar button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.toolbar-divider {
+  width: 1px;
+  background: var(--border-color);
+  margin: 0 4px;
+}
+
+/* Editor Content */
+.tiptap-editor {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  outline: none;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--text-primary);
+  height: calc(100vh - 200px);
+}
+
+.tiptap-editor p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: var(--text-tertiary);
+  pointer-events: none;
+  height: 0;
+}
+
+/* Typography */
+.tiptap-editor h1 {
+  font-size: 2em;
+  font-weight: bold;
+  margin: 0.5em 0;
+}
+
+.tiptap-editor h2 {
+  font-size: 1.5em;
+  font-weight: bold;
+  margin: 0.5em 0;
+}
+
+.tiptap-editor h3 {
+  font-size: 1.25em;
+  font-weight: bold;
+  margin: 0.5em 0;
+}
+
+.tiptap-editor p {
+  margin: 0.5em 0;
+}
+
+.tiptap-editor ul,
+.tiptap-editor ol {
+  padding-left: 1.5em;
+  margin: 0.5em 0;
+}
+
+.tiptap-editor li {
+  margin: 0.25em 0;
+}
+
+.tiptap-editor blockquote {
+  border-left: 3px solid var(--accent-primary);
+  padding-left: 1em;
+  margin: 1em 0;
+  font-style: italic;
+  color: var(--text-secondary);
+}
+
+.tiptap-editor pre {
+  background: var(--bg-tertiary);
+  border-radius: 4px;
+  padding: 1em;
+  overflow-x: auto;
+  margin: 1em 0;
+}
+
+.tiptap-editor code {
+  background: var(--bg-tertiary);
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9em;
+}
+
+.tiptap-editor pre code {
+  background: transparent;
+  padding: 0;
+}
+
+.tiptap-editor a {
+  color: var(--accent-primary);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.tiptap-editor a:hover {
+  color: var(--accent-secondary);
+}
+
+.tiptap-editor hr {
+  border: none;
+  border-top: 2px solid var(--border-color);
+  margin: 1.5em 0;
+}
+
+.tiptap-editor strong {
+  font-weight: bold;
+}
+
+.tiptap-editor em {
+  font-style: italic;
+}
+
+.tiptap-editor s {
+  text-decoration: line-through;
+}
+
+/* Dark mode specific */
+.tiptap-wrapper.dark .tiptap-editor {
+  background-color: #2d3748;
+  color: #f7fafc;
+}
+
+.tiptap-dark {
+  background-color: #2d3748;
+  color: #f7fafc;
+}
+
+/* Custom metadata display styles */
+.metadata-container {
+  position: relative;
+  margin: 10px 0;
+  padding: 12px;
+  padding-right: 40px;
+  border-left: 3px solid #667eea;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+}
+
+.metadata-container.dark-mode {
+  background-color: #374151;
+  border-left-color: #7c3aed;
+}
+
+.metadata-toggle-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  cursor: pointer;
+  background: #667eea;
+  color: white;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: bold;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  transition: all 0.2s ease;
+}
+
+.metadata-toggle-btn:hover {
+  background: #5a67d8;
+  transform: scale(1.1);
+}
+
+.metadata-toggle-btn.active {
+  background: #5a67d8;
+}
+
+.metadata-info {
+  display: none;
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 10px;
+  padding: 10px;
+  background: white;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+}
+
+.metadata-info.visible {
+  display: block;
+}
+
+.metadata-info.dark-mode {
+  background: #1f2937;
+  color: #e5e7eb;
+  border-color: #4b5563;
+}
+
+.metadata-info-row {
+  margin-bottom: 6px;
+  display: flex;
+  align-items: baseline;
+}
+
+.metadata-info-row:last-child {
+  margin-bottom: 0;
+}
+
+.metadata-info-label {
+  font-weight: bold;
+  margin-right: 8px;
+  min-width: 70px;
+}
+
+.metadata-info-value {
+  word-break: break-all;
+}
+
+.metadata-info-value a {
+  color: #667eea;
+  text-decoration: none;
+}
+
+.metadata-info-value a:hover {
+  text-decoration: underline;
+}
+
+.metadata-content {
+  line-height: 1.6;
+}
+
+/* Metadata toggle link styles */
+.metadata-toggle-link {
+  color: #667eea;
+  font-size: 11px;
+  cursor: pointer;
+  text-decoration: underline;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  display: inline-block;
+  padding: 2px 0;
+}
+
+.metadata-toggle-link:hover {
+  color: #5a67d8;
+  text-decoration: none;
+}
+
+/* Prevent the toggle link from being easily deletable */
+.tiptap-editor p:has(.metadata-toggle-link) {
+  user-select: none;
+  -webkit-user-select: none;
+}
+

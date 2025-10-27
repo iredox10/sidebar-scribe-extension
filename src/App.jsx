@@ -144,20 +144,51 @@ function App() {
       setConfirmDialog({ ...confirmDialog, show: false });
     };
 
-    const handleAppendToCurrentNote = (text) => {
+    const handleAppendToCurrentNote = (text, metadata = null) => {
       console.log("🔧 handleAppendToCurrentNote called");
       console.log("Selected note:", notesState.selectedNote);
       console.log("Current content length:", noteContent.length);
       console.log("Text to append:", text);
+      console.log("Metadata:", metadata);
+      console.log("Show metadata setting:", settingsState.settings.showMetadataOnAppend);
       
       if (notesState.selectedNote) {
-        // Append the text to the current note content on a new line
-        // Use HTML breaks since SunEditor stores content as HTML
-        const separator = noteContent.trim() ? '<br><br>' : '';
-        const newContent = noteContent + separator + text;
+        // Append the text to the current note content on a new line with metadata
+        const separator = noteContent.trim() ? '<p></p>' : '';
+        
+        let appendedContent = '';
+        
+        // Only show metadata if the setting is enabled AND metadata is provided
+        if (metadata && settingsState.settings.showMetadataOnAppend) {
+          // Format timestamp
+          const date = new Date(metadata.timestamp);
+          const day = String(date.getDate()).padStart(2, '0');
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const year = String(date.getFullYear()).slice(-2);
+          const hours = String(date.getHours()).padStart(2, '0');
+          const minutes = String(date.getMinutes()).padStart(2, '0');
+          const seconds = String(date.getSeconds()).padStart(2, '0');
+          const timestamp = `${day}/${month}/${year} - ${hours}:${minutes}:${seconds}`;
+          
+          const isDark = settingsState.settings.theme === 'dark';
+          
+          // Show metadata at the top, visible by default
+          appendedContent = `
+            <div class="metadata-source-info" style="font-size: 11px; color: ${isDark ? '#9ca3af' : '#6b7280'}; margin: 0 0 8px 0; padding: 10px; background: ${isDark ? '#374151' : '#f3f4f6'}; border-radius: 4px; border-left: 3px solid #667eea;">
+              <div style="margin-bottom: 4px;"><strong>📅</strong> ${timestamp}</div>
+              <div style="margin-bottom: 4px;"><strong>🌐</strong> ${metadata.title || 'Unknown'}</div>
+              <div style="margin-bottom: 0;"><strong>🔗</strong> <a href="${metadata.url}" target="_blank" style="color: #667eea; text-decoration: none; word-break: break-all;">${metadata.url}</a></div>
+            </div>
+            <p style="margin: 0;">${text}</p>
+          `;
+        } else {
+          // No metadata or setting is disabled, just append the text
+          appendedContent = `<p>${text}</p>`;
+        }
+        
+        const newContent = noteContent + separator + appendedContent;
         
         console.log("✅ New content created, length:", newContent.length);
-        console.log("First 100 chars:", newContent.substring(0, 100));
         
         // Update local state first
         setNoteContent(newContent);

@@ -11,6 +11,7 @@ const SettingsPage = ({ folders = [], defaultFolder, theme, onSaveSettings, onBa
   const [dateFormat, setDateFormat] = useState('short');
   const [defaultFileFormat, setDefaultFileFormat] = useState('md');
   const [showLineNumbers, setShowLineNumbers] = useState(false);
+  const [showMetadataOnAppend, setShowMetadataOnAppend] = useState(true);
 
   useEffect(() => {
     // Load settings from storage
@@ -24,7 +25,8 @@ const SettingsPage = ({ folders = [], defaultFolder, theme, onSaveSettings, onBa
           'autoSaveInterval',
           'dateFormat',
           'defaultFileFormat',
-          'showLineNumbers'
+          'showLineNumbers',
+          'showMetadataOnAppend'
         ]);
         
         setSelectedFolder(result.defaultFolder || defaultFolder || '');
@@ -35,6 +37,7 @@ const SettingsPage = ({ folders = [], defaultFolder, theme, onSaveSettings, onBa
         setDateFormat(result.dateFormat || 'short');
         setDefaultFileFormat(result.defaultFileFormat || 'md');
         setShowLineNumbers(result.showLineNumbers || false);
+        setShowMetadataOnAppend(result.showMetadataOnAppend !== undefined ? result.showMetadataOnAppend : true);
       } catch (error) {
         console.error('Error loading settings:', error);
       }
@@ -52,7 +55,8 @@ const SettingsPage = ({ folders = [], defaultFolder, theme, onSaveSettings, onBa
       autoSaveInterval: autoSaveInterval,
       dateFormat: dateFormat,
       defaultFileFormat: defaultFileFormat,
-      showLineNumbers: showLineNumbers
+      showLineNumbers: showLineNumbers,
+      showMetadataOnAppend: showMetadataOnAppend
     };
     
     // Save to chrome storage
@@ -264,6 +268,25 @@ const SettingsPage = ({ folders = [], defaultFolder, theme, onSaveSettings, onBa
           </select>
           <p className="setting-description">
             Choose how dates are displayed in note names and timestamps.
+          </p>
+        </div>
+        
+        {/* Show Metadata on Append */}
+        <div className="setting-group">
+          <label htmlFor="show-metadata">
+            🔗 Selection Source Information
+          </label>
+          <div className="checkbox-group">
+            <input
+              type="checkbox"
+              id="show-metadata"
+              checked={showMetadataOnAppend}
+              onChange={(e) => setShowMetadataOnAppend(e.target.checked)}
+            />
+            <label htmlFor="show-metadata">Include source information when appending selections</label>
+          </div>
+          <p className="setting-description">
+            When enabled, appended text selections will include a "View source" link showing the date, website, and URL. When disabled, only the selected text will be added.
           </p>
         </div>
         

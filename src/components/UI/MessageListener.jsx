@@ -33,16 +33,17 @@ const MessageListener = ({
         
         onCreateNoteFromSelection(newNote);
       } else if (message.action === "appendToCurrentNote") {
-        const { text } = message;
+        const { text, metadata } = message;
         
         console.log("📝 Append to current note action triggered");
         console.log("Current note:", currentNote);
         console.log("Text to append:", text);
+        console.log("Metadata:", metadata);
         
         // Append to current note if one is selected
         if (currentNote && onAppendToCurrentNote) {
           console.log("✅ Appending to current note:", currentNote.name);
-          onAppendToCurrentNote(text);
+          onAppendToCurrentNote(text, metadata);
         } else {
           // If no note is selected, show a notification or create a new note
           console.log("⚠️ No note selected. Creating a new note instead.");

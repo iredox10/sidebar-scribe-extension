@@ -1,7 +1,11 @@
 import { useState, useEffect } from 'react';
 
 export const useSettings = () => {
-  const [settings, setSettings] = useState({ defaultFolder: '', theme: 'light' });
+  const [settings, setSettings] = useState({ 
+    defaultFolder: '', 
+    theme: 'light',
+    showMetadataOnAppend: true  // Show metadata by default when appending selections
+  });
 
   // Load settings
   useEffect(() => {

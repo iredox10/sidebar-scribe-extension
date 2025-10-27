@@ -43,12 +43,17 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     // Ensure the side panel is open
     await chrome.sidePanel.open({ windowId: tab.windowId });
     
-    // Send a message to append to the current note with a longer delay
+    // Send a message to append to the current note with metadata
     setTimeout(() => {
-      console.log("📤 Sending append message");
+      console.log("📤 Sending append message with metadata");
       chrome.runtime.sendMessage({
         action: "appendToCurrentNote",
-        text: info.selectionText
+        text: info.selectionText,
+        metadata: {
+          url: tab.url,
+          title: tab.title,
+          timestamp: new Date().toISOString()
+        }
       });
     }, 300); // Increased delay to ensure side panel is ready
   }
