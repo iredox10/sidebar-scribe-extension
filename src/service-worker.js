@@ -35,7 +35,9 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     setTimeout(() => {
       chrome.runtime.sendMessage({
         action: "createNoteFromSelection",
-        text: info.selectionText
+        text: info.selectionText,
+        sourceUrl: tab.url,
+        sourceTitle: tab.title
       });
     }, 100); // A small delay to ensure the side panel is ready
   } else if (info.menuItemId === "appendToCurrentNote") {
@@ -48,7 +50,9 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
       console.log("📤 Sending append message");
       chrome.runtime.sendMessage({
         action: "appendToCurrentNote",
-        text: info.selectionText
+        text: info.selectionText,
+        sourceUrl: tab.url,
+        sourceTitle: tab.title
       });
     }, 300); // Increased delay to ensure side panel is ready
   }
