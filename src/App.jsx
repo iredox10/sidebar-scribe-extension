@@ -13,6 +13,7 @@ import { useSettings } from './hooks/useSettings.js';
 import { useUI } from './hooks/useUI.js';
 import { useEditing } from './hooks/useEditing.js';
 import { useFileOperations } from './hooks/useFileOperations.js';
+import { useAutoSync } from './hooks/useAutoSync.js';
 
 function App() {
   console.log('🚀 App component loading with full integration...');
@@ -30,6 +31,9 @@ function App() {
       notesState.handleCreateNote, 
       settingsState.settings.defaultFolder
     );
+    
+    // Auto-sync hook
+    const autoSyncState = useAutoSync(notesState.notes, notesState.folders);
 
     // Local state for editor content
     const [noteContent, setNoteContent] = React.useState('');
@@ -246,6 +250,10 @@ function App() {
           onToggleMoreActions={uiState.setShowMoreActions}
           isFloatingMode={uiState.isFloatingMode}
           onToggleFloatingMode={uiState.toggleFloatingMode}
+          // Sync props
+          isSyncing={autoSyncState.isSyncing}
+          syncError={autoSyncState.syncError}
+          lastSyncTime={autoSyncState.lastSyncTime}
         />
 
         <div className="main-content">

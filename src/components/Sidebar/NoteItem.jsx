@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { FaFile, FaStar, FaRegStar, FaTrash, FaPencilAlt } from 'react-icons/fa';
 
 const NoteItem = ({
@@ -14,6 +14,19 @@ const NoteItem = ({
   onEditingNameChange,
   onSaveEdit
 }) => {
+  const inputRef = useRef(null);
+
+  // Debug logging to verify prop updates
+  useEffect(() => {
+    if (isEditing) {
+      console.log(`NoteItem ${note.id} entered edit mode`);
+      if (inputRef.current) {
+        inputRef.current.focus();
+        inputRef.current.select();
+      }
+    }
+  }, [isEditing, note.id]);
+
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
       onSaveEdit();
@@ -22,22 +35,36 @@ const NoteItem = ({
     }
   };
 
+  const handleEditClick = (e) => {
+    // Crucial: Stop propagation immediately
+    e.preventDefault();
+    e.stopPropagation();
+    console.log(`Edit button clicked for ${note.id}`);
+    onStartEdit(note.id, note.name);
+  };
+
+  const handleSelectClick = (e) => {
+    if (!isEditing) {
+      onSelect(note);
+    }
+  };
+
   return (
     <li 
       className={`note-item ${isSelected ? 'selected' : ''}`}
-      onClick={() => !isEditing && onSelect(note)}
+      onClick={handleSelectClick}
     >
       <div className="item-content">
         <FaFile className="item-icon" />
         {isEditing ? (
           <input
+            ref={inputRef}
             type="text"
             value={editingName}
             onChange={(e) => onEditingNameChange(e.target.value)}
             onBlur={onSaveEdit}
             onKeyDown={handleKeyDown}
             onClick={(e) => e.stopPropagation()}
-            autoFocus
             className="edit-input"
           />
         ) : (
@@ -45,16 +72,9 @@ const NoteItem = ({
             <span className="item-name">{note.name}</span>
             <button 
               className="edit-name-btn" 
-              onMouseDown={(e) => {
-                // Prevent the mousedown from blurring any currently focused input
-                e.preventDefault();
-                e.stopPropagation();
-              }}
-              onClick={(e) => {
-                e.stopPropagation();
-                onStartEdit(note.id, note.name);
-              }}
+              onClick={handleEditClick}
               title="Edit Note Name"
+              type="button" // Ensure it doesn't submit forms
             >
               <FaPencilAlt />
             </button>
@@ -69,6 +89,7 @@ const NoteItem = ({
             onToggleFavorite(note.id);
           }}
           title={isFavorite ? "Remove from favorites" : "Add to favorites"}
+          type="button"
         >
           {isFavorite ? <FaStar /> : <FaRegStar />}
         </button>
@@ -79,6 +100,7 @@ const NoteItem = ({
             onDelete(note.id);
           }}
           title="Delete Note"
+          type="button"
         >
           <FaTrash />
         </button>

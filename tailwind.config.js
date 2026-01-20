@@ -7,77 +7,55 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        'light-bg': '#f5f7fa',
-        'light-surface': '#ffffff',
-        'light-border': '#e1e8ed',
-        'light-hover': '#f0f4f8',
-        'dark-bg': '#1a202c',
-        'dark-surface': '#2d3748',
-        'dark-border': '#4a5568',
-        'dark-hover': '#4a5568',
+        // Map legacy names to new CSS variables for consistency
+        'light-bg': 'var(--bg-primary)',
+        'light-surface': 'var(--bg-secondary)',
+        'light-border': 'var(--border-color)',
+        'light-hover': 'var(--bg-hover)',
+        
+        'dark-bg': 'var(--bg-primary)',
+        'dark-surface': 'var(--bg-secondary)',
+        'dark-border': 'var(--border-color)',
+        'dark-hover': 'var(--bg-hover)',
+        
         'primary': {
-          DEFAULT: '#667eea',
-          light: '#7c3aed',
-          dark: '#5a67d8',
+          DEFAULT: 'var(--accent-primary)',
+          light: 'var(--accent-secondary)',
+          dark: 'var(--accent-primary-hover)',
         },
-        'secondary': '#5a67d8',
+        'secondary': 'var(--accent-secondary)',
         'success': {
-          DEFAULT: '#48bb78',
-          dark: '#38a169',
+          DEFAULT: 'var(--accent-success)',
         },
         'warning': {
-          DEFAULT: '#ed8936',
-          dark: '#dd6b20',
+          DEFAULT: 'var(--accent-warning)',
         },
         'danger': {
-          DEFAULT: '#f56565',
-          light: '#fc8181',
+          DEFAULT: 'var(--accent-danger)',
         },
-        'purple': {
-          DEFAULT: '#764ba2',
-        }
+        
+        // Semantic names if needed
+        'app-bg': 'var(--bg-primary)',
+        'sidebar-bg': 'var(--bg-secondary)',
+        'input-bg': 'var(--bg-tertiary)',
       },
       boxShadow: {
-        'sm': '0 1px 3px rgba(0, 0, 0, 0.08)',
-        'light': '0 4px 12px rgba(0, 0, 0, 0.08)',
-        'md': '0 6px 20px rgba(0, 0, 0, 0.12)',
-        'lg': '0 10px 30px rgba(0, 0, 0, 0.15)',
-        'dark': '0 4px 12px rgba(0, 0, 0, 0.4)',
-        'dark-md': '0 6px 20px rgba(0, 0, 0, 0.5)',
-        'dark-lg': '0 10px 30px rgba(0, 0, 0, 0.6)',
-        'colored': '0 4px 12px rgba(102, 126, 234, 0.2)',
-        'colored-dark': '0 4px 12px rgba(102, 126, 234, 0.3)',
+        'sm': 'var(--shadow-sm)',
+        'md': 'var(--shadow-md)',
+        'lg': 'var(--shadow-lg)',
+        'colored': 'var(--shadow-colored)',
       },
       borderRadius: {
-        'sm': '8px',
-        'md': '12px',
+        'sm': 'var(--border-radius-sm)',
+        'md': 'var(--border-radius)',
         'lg': '16px',
-        'xl': '20px',
       },
       animation: {
-        'fade-in': 'fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-        'slide-in': 'slideInLeft 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-        'pulse-slow': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-      },
-      keyframes: {
-        fadeIn: {
-          '0%': { opacity: '0', transform: 'translateY(10px)' },
-          '100%': { opacity: '1', transform: 'translateY(0)' },
-        },
-        slideInLeft: {
-          '0%': { opacity: '0', transform: 'translateX(-20px)' },
-          '100%': { opacity: '1', transform: 'translateX(0)' },
-        },
-        pulse: {
-          '0%, 100%': { opacity: '1' },
-          '50%': { opacity: '0.8' },
-        },
-      },
-      backdropBlur: {
-        xs: '2px',
+        'fade-in': 'fadeIn 0.2s ease-out',
+        'slide-in': 'slideInLeft 0.2s ease-out',
       },
     },
   },
   plugins: [],
-  darkMode: 'class',
+  darkMode: ['class', '[data-theme="dark"]'], // Support both class and data-attribute
 }

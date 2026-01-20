@@ -7,6 +7,7 @@ export const useEditing = () => {
   const [editingFolderName, setEditingFolderName] = useState('');
 
   const startEditingNoteName = (noteId, currentName) => {
+    console.log('startEditingNoteName called', noteId, currentName);
     setEditingNoteId(noteId);
     setEditingNoteName(currentName);
   };

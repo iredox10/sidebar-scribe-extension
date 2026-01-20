@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { FaFolder, FaFolderOpen, FaFileAlt, FaTrash, FaPencilAlt } from 'react-icons/fa';
 import NoteItem from './NoteItem';
 
@@ -25,6 +25,16 @@ const FolderItem = ({
   onEditingNoteNameChange,
   onSaveNoteEdit
 }) => {
+  const inputRef = useRef(null);
+
+  // When editing starts, focus the input and select the text
+  useEffect(() => {
+    if (isEditing && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [isEditing]);
+
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
       onSaveEdit();
@@ -51,13 +61,13 @@ const FolderItem = ({
           }
           {isEditing ? (
             <input
+              ref={inputRef}
               type="text"
               value={editingName}
               onChange={(e) => onEditingNameChange(e.target.value)}
               onBlur={onSaveEdit}
               onKeyDown={handleKeyDown}
               onClick={(e) => e.stopPropagation()}
-              autoFocus
               className="edit-input"
             />
           ) : (
@@ -65,11 +75,8 @@ const FolderItem = ({
               <span className="item-name">{folder.name}</span>
               <button 
                 className="edit-name-btn" 
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                }}
                 onClick={(e) => {
+                  e.preventDefault();
                   e.stopPropagation();
                   onStartEdit(folder.id, folder.name);
                 }}

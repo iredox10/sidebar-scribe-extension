@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { FaSave, FaArrowLeft, FaMoon, FaSun, FaFolder, FaDesktop, FaFileAlt, FaClock, FaDownload } from 'react-icons/fa';
+import { FaSave, FaArrowLeft, FaCheck, FaInfoCircle, FaFolder } from 'react-icons/fa';
 import '../App.css';
+import './SettingsPage.css';
 
 const SettingsPage = ({ folders = [], defaultFolder, theme, onSaveSettings, onBack }) => {
   const [selectedFolder, setSelectedFolder] = useState(defaultFolder || '');
@@ -11,6 +12,15 @@ const SettingsPage = ({ folders = [], defaultFolder, theme, onSaveSettings, onBa
   const [dateFormat, setDateFormat] = useState('short');
   const [defaultFileFormat, setDefaultFileFormat] = useState('md');
   const [showLineNumbers, setShowLineNumbers] = useState(false);
+  
+  // GitHub Settings
+  const [githubToken, setGithubToken] = useState('');
+  const [githubRepo, setGithubRepo] = useState('');
+  const [githubBranch, setGithubBranch] = useState('main');
+  const [githubAutoSync, setGithubAutoSync] = useState(false);
+  const [githubSyncMode, setGithubSyncMode] = useState('json');
+  
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
   useEffect(() => {
     // Load settings from storage
@@ -24,7 +34,12 @@ const SettingsPage = ({ folders = [], defaultFolder, theme, onSaveSettings, onBa
           'autoSaveInterval',
           'dateFormat',
           'defaultFileFormat',
-          'showLineNumbers'
+          'showLineNumbers',
+          'githubToken',
+          'githubRepo',
+          'githubBranch',
+          'githubAutoSync',
+          'githubSyncMode'
         ]);
         
         setSelectedFolder(result.defaultFolder || defaultFolder || '');
@@ -35,6 +50,14 @@ const SettingsPage = ({ folders = [], defaultFolder, theme, onSaveSettings, onBa
         setDateFormat(result.dateFormat || 'short');
         setDefaultFileFormat(result.defaultFileFormat || 'md');
         setShowLineNumbers(result.showLineNumbers || false);
+        
+        // GitHub Load
+        setGithubToken(result.githubToken || '');
+        setGithubRepo(result.githubRepo || '');
+        setGithubBranch(result.githubBranch || 'main');
+        setGithubAutoSync(result.githubAutoSync || false);
+        setGithubSyncMode(result.githubSyncMode || 'json');
+        
       } catch (error) {
         console.error('Error loading settings:', error);
       }
@@ -52,56 +75,50 @@ const SettingsPage = ({ folders = [], defaultFolder, theme, onSaveSettings, onBa
       autoSaveInterval: autoSaveInterval,
       dateFormat: dateFormat,
       defaultFileFormat: defaultFileFormat,
-      showLineNumbers: showLineNumbers
+      showLineNumbers: showLineNumbers,
+      // GitHub Save
+      githubToken: githubToken,
+      githubRepo: githubRepo,
+      githubBranch: githubBranch,
+      githubAutoSync: githubAutoSync,
+      githubSyncMode: githubSyncMode
     };
     
     // Save to chrome storage
     try {
       await chrome.storage.local.set(settings);
       console.log('✅ Settings saved:', settings);
+      
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 2000);
+      
+      onSaveSettings(settings);
     } catch (error) {
       console.error('Error saving settings:', error);
     }
-    
-    onSaveSettings(settings);
   };
 
   const handleSelectSavePath = async () => {
     try {
-      // Use the File System Access API (only works in modern browsers)
       if ('showDirectoryPicker' in window) {
         const directoryHandle = await window.showDirectoryPicker({
           mode: 'readwrite',
           startIn: 'documents'
         });
-        
-        // Store the directory handle name/path
         const dirName = directoryHandle.name;
         setLocalSavePath(dirName);
-        
-        // Store the directory handle for later use
-        // Note: We can't directly serialize the handle, so we store the name
-        // The actual handle would need to be requested again when saving
         await chrome.storage.local.set({ 
           localSaveDirectoryName: dirName,
           localSavePath: dirName
         });
-        
-        alert(`Directory selected: ${dirName}\n\nNote: You'll need to grant permission again when saving files.`);
+        alert(`Directory selected: ${dirName}`);
       } else {
-        // Fallback for browsers that don't support File System Access API
-        alert('Your browser does not support directory selection.\n\nPlease manually enter the path where you want to save notes (e.g., Documents/Notes).\n\nNote: This path is for reference only. Files will still be saved to your Downloads folder.');
         const path = prompt('Enter the reference path for your notes:', localSavePath || 'Documents/Notes');
-        if (path) {
-          setLocalSavePath(path);
-        }
+        if (path) setLocalSavePath(path);
       }
     } catch (error) {
-      if (error.name === 'AbortError') {
-        console.log('Directory selection cancelled');
-      } else {
+      if (error.name !== 'AbortError') {
         console.error('Error selecting save path:', error);
-        alert('Failed to select directory. Please try again.');
       }
     }
   };
@@ -109,167 +126,244 @@ const SettingsPage = ({ folders = [], defaultFolder, theme, onSaveSettings, onBa
   return (
     <div className={`settings-page theme-${selectedTheme}`}>
       <div className="settings-header">
-        <button className="back-button" onClick={onBack}>
-          <FaArrowLeft /> Back
+        <div className="header-left">
+          <button className="back-button" onClick={onBack}>
+            <FaArrowLeft />
+          </button>
+          <h2>Settings</h2>
+        </div>
+        <button 
+          className={`save-action-btn ${saveSuccess ? 'success' : ''}`} 
+          onClick={handleSave}
+        >
+          {saveSuccess ? <FaCheck /> : <FaSave />}
+          <span>{saveSuccess ? 'Saved' : 'Save Changes'}</span>
         </button>
-        <h2>Settings</h2>
       </div>
       
-      <div className="settings-content">
-        {/* Default Folder */}
-        <div className="setting-group">
-          <label htmlFor="default-folder">
-            <FaFolder /> Default Folder for New Notes
-          </label>
-          <select 
-            id="default-folder"
-            value={selectedFolder}
-            onChange={(e) => setSelectedFolder(e.target.value)}
-            className="folder-select"
-          >
-            <option value="">Root (No Folder)</option>
-            {folders.map(folder => (
-              <option key={folder.id} value={folder.id}>
-                {folder.name}
-              </option>
-            ))}
-          </select>
-          <p className="setting-description">
-            Notes created from the browser toolbar will be saved to this folder by default.
-          </p>
-        </div>
-        
-        {/* Theme */}
-        <div className="setting-group">
-          <label htmlFor="theme-selector">
-            {selectedTheme === 'dark' ? <FaMoon /> : <FaSun />} Theme
-          </label>
-          <select 
-            id="theme-selector"
-            value={selectedTheme}
-            onChange={(e) => setSelectedTheme(e.target.value)}
-            className="theme-select"
-          >
-            <option value="light">☀️ Light</option>
-            <option value="dark">🌙 Dark</option>
-          </select>
-          <p className="setting-description">
-            Choose between light and dark theme for the application.
-          </p>
-        </div>
-        
-        {/* Local Save Path */}
-        <div className="setting-group">
-          <label htmlFor="local-save-path">
-            <FaDownload /> Local Save Directory
-          </label>
-          <div className="path-selector">
-            <input
-              type="text"
-              id="local-save-path"
-              value={localSavePath}
-              onChange={(e) => setLocalSavePath(e.target.value)}
-              placeholder="Click 'Browse' to select a directory"
-              className="folder-select"
-              readOnly
-            />
-            <button 
-              className="select-path-btn" 
-              onClick={handleSelectSavePath}
-              title="Browse for directory"
-            >
-              <FaFolder /> Browse
-            </button>
+      <div className="settings-container">
+        {/* General Section */}
+        <div className="settings-section">
+          <div className="section-title">General</div>
+          
+          <div className="setting-item">
+            <div className="setting-info">
+              <label htmlFor="theme-selector">Appearance</label>
+              <p className="setting-desc">Choose your preferred visual theme</p>
+            </div>
+            <div className="setting-control">
+              <select 
+                id="theme-selector"
+                value={selectedTheme}
+                onChange={(e) => setSelectedTheme(e.target.value)}
+                className="select-input"
+              >
+                <option value="light">Light Mode</option>
+                <option value="dark">Dark Mode</option>
+              </select>
+            </div>
           </div>
-          <p className="setting-description">
-            Click "Browse" to select the directory where notes will be saved when exported. You'll need to grant permission each time you save.
-          </p>
-        </div>
-        
-        {/* Default File Format */}
-        <div className="setting-group">
-          <label htmlFor="file-format">
-            <FaFileAlt /> Default Export Format
-          </label>
-          <select 
-            id="file-format"
-            value={defaultFileFormat}
-            onChange={(e) => setDefaultFileFormat(e.target.value)}
-            className="theme-select"
-          >
-            <option value="md">📝 Markdown (.md)</option>
-            <option value="txt">📄 Plain Text (.txt)</option>
-            <option value="html">🌐 HTML (.html)</option>
-          </select>
-          <p className="setting-description">
-            Choose the default file format when saving notes locally.
-          </p>
-        </div>
-        
-        {/* Auto Save */}
-        <div className="setting-group">
-          <label htmlFor="auto-save">
-            <FaClock /> Auto Save
-          </label>
-          <div className="checkbox-group">
-            <input
-              type="checkbox"
-              id="auto-save"
-              checked={autoSave}
-              onChange={(e) => setAutoSave(e.target.checked)}
-            />
-            <label htmlFor="auto-save">Enable auto-save</label>
+
+          <div className="setting-item">
+            <div className="setting-info">
+              <label htmlFor="default-folder">Default Location</label>
+              <p className="setting-desc">New notes will be created here</p>
+            </div>
+            <div className="setting-control">
+              <select 
+                id="default-folder"
+                value={selectedFolder}
+                onChange={(e) => setSelectedFolder(e.target.value)}
+                className="select-input"
+              >
+                <option value="">Root (No Folder)</option>
+                {folders.map(folder => (
+                  <option key={folder.id} value={folder.id}>
+                    {folder.name}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
-          <p className="setting-description">
-            Automatically save changes as you type.
-          </p>
         </div>
-        
-        {/* Auto Save Interval */}
-        {autoSave && (
-          <div className="setting-group">
-            <label htmlFor="auto-save-interval">
-              <FaClock /> Auto Save Interval (seconds)
-            </label>
-            <input
-              type="number"
-              id="auto-save-interval"
-              value={autoSaveInterval}
-              onChange={(e) => setAutoSaveInterval(parseInt(e.target.value) || 30)}
-              min="5"
-              max="300"
-              className="folder-select"
-            />
-            <p className="setting-description">
-              How often to automatically save changes (5-300 seconds).
-            </p>
+
+        {/* Editor Section */}
+        <div className="settings-section">
+          <div className="section-title">Editor & Saving</div>
+          
+          <div className="setting-item">
+            <div className="setting-info">
+              <label>Auto-Save</label>
+              <p className="setting-desc">Save changes automatically while typing</p>
+            </div>
+            <div className="setting-control">
+              <label className="switch">
+                <input 
+                  type="checkbox" 
+                  checked={autoSave}
+                  onChange={(e) => setAutoSave(e.target.checked)}
+                />
+                <span className="slider round"></span>
+              </label>
+            </div>
           </div>
-        )}
-        
-        {/* Date Format */}
-        <div className="setting-group">
-          <label htmlFor="date-format">
-            <FaClock /> Date Format
-          </label>
-          <select 
-            id="date-format"
-            value={dateFormat}
-            onChange={(e) => setDateFormat(e.target.value)}
-            className="theme-select"
-          >
-            <option value="short">Short (Jan 1, 2025)</option>
-            <option value="long">Long (January 1, 2025)</option>
-            <option value="iso">ISO (2025-01-01)</option>
-            <option value="full">Full (Monday, January 1, 2025)</option>
-          </select>
-          <p className="setting-description">
-            Choose how dates are displayed in note names and timestamps.
-          </p>
+
+          {autoSave && (
+            <div className="setting-item">
+              <div className="setting-info">
+                <label htmlFor="auto-save-interval">Save Interval</label>
+                <p className="setting-desc">Seconds between auto-saves</p>
+              </div>
+              <div className="setting-control">
+                <input
+                  type="number"
+                  id="auto-save-interval"
+                  value={autoSaveInterval}
+                  onChange={(e) => setAutoSaveInterval(parseInt(e.target.value) || 30)}
+                  min="5"
+                  max="300"
+                  className="number-input"
+                />
+              </div>
+            </div>
+          )}
+
+          <div className="setting-item">
+            <div className="setting-info">
+              <label htmlFor="file-format">Export Format</label>
+              <p className="setting-desc">Default extension for saved files</p>
+            </div>
+            <div className="setting-control">
+              <select 
+                id="file-format"
+                value={defaultFileFormat}
+                onChange={(e) => setDefaultFileFormat(e.target.value)}
+                className="select-input"
+              >
+                <option value="md">Markdown (.md)</option>
+                <option value="txt">Plain Text (.txt)</option>
+                <option value="html">HTML (.html)</option>
+              </select>
+            </div>
+          </div>
         </div>
-        
-        <button className="save-settings-btn" onClick={handleSave}>
-          <FaSave /> Save Settings
-        </button>
+
+        {/* GitHub Sync Section */}
+        <div className="settings-section">
+          <div className="section-title">GitHub Sync</div>
+          
+          <div className="setting-item">
+            <div className="setting-info">
+              <label>Auto-Push</label>
+              <p className="setting-desc">Automatically push changes to GitHub</p>
+            </div>
+            <div className="setting-control">
+              <label className="switch">
+                <input 
+                  type="checkbox" 
+                  checked={githubAutoSync}
+                  onChange={(e) => setGithubAutoSync(e.target.checked)}
+                />
+                <span className="slider round"></span>
+              </label>
+            </div>
+          </div>
+
+          <div className="setting-item">
+            <div className="setting-info">
+              <label htmlFor="github-token">Personal Access Token</label>
+              <p className="setting-desc">Token with 'repo' scope</p>
+            </div>
+            <div className="setting-control">
+              <input
+                type="password"
+                id="github-token"
+                value={githubToken}
+                onChange={(e) => setGithubToken(e.target.value)}
+                placeholder="ghp_..."
+                className="select-input"
+              />
+            </div>
+          </div>
+
+          <div className="setting-item">
+            <div className="setting-info">
+              <label htmlFor="github-repo">Repository</label>
+              <p className="setting-desc">username/repo-name</p>
+            </div>
+            <div className="setting-control">
+              <input
+                type="text"
+                id="github-repo"
+                value={githubRepo}
+                onChange={(e) => setGithubRepo(e.target.value)}
+                placeholder="username/repo"
+                className="select-input"
+              />
+            </div>
+          </div>
+
+          <div className="setting-item">
+            <div className="setting-info">
+              <label htmlFor="github-branch">Branch</label>
+              <p className="setting-desc">Branch to push to</p>
+            </div>
+            <div className="setting-control">
+              <input
+                type="text"
+                id="github-branch"
+                value={githubBranch}
+                onChange={(e) => setGithubBranch(e.target.value)}
+                placeholder="main"
+                className="select-input"
+              />
+            </div>
+          </div>
+
+          <div className="setting-item">
+            <div className="setting-info">
+              <label htmlFor="github-mode">Sync Mode</label>
+              <p className="setting-desc">How to structure files in the repo</p>
+            </div>
+            <div className="setting-control">
+              <select 
+                id="github-mode"
+                value={githubSyncMode}
+                onChange={(e) => setGithubSyncMode(e.target.value)}
+                className="select-input"
+              >
+                <option value="json">Single Backup File (JSON)</option>
+                <option value="markdown">Individual Files (Markdown)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Data Section */}
+        <div className="settings-section">
+          <div className="section-title">Data Management</div>
+          
+          <div className="setting-item">
+            <div className="setting-info">
+              <label>Local Directory</label>
+              <p className="setting-desc">
+                {localSavePath ? `Selected: ${localSavePath}` : 'No directory selected'}
+              </p>
+            </div>
+            <div className="setting-control">
+              <button 
+                className="secondary-btn" 
+                onClick={handleSelectSavePath}
+              >
+                <FaFolder /> Browse
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="settings-footer">
+          <p><FaInfoCircle /> Sidebar Note v1.0.0</p>
+        </div>
       </div>
     </div>
   );

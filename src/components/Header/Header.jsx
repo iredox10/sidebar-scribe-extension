@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { 
-  FaBars, FaSearch, FaFileAlt, FaStar, FaRegStar, FaCog 
+  FaBars, FaSearch, FaFileAlt, FaStar, FaRegStar, FaCog, FaSync, FaExclamationTriangle, FaCheck
 } from 'react-icons/fa';
 import SearchContainer from './SearchContainer';
 import MoreActionsDropdown from './MoreActionsDropdown';
@@ -24,7 +24,10 @@ const Header = ({
   showMoreActions,
   onToggleMoreActions,
   isFloatingMode,
-  onToggleFloatingMode
+  onToggleFloatingMode,
+  isSyncing,
+  syncError,
+  lastSyncTime
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearch, setShowSearch] = useState(false);
@@ -83,6 +86,23 @@ const Header = ({
 
         {/* Main Actions */}
         <div className="main-actions">
+          {/* Sync Status Indicator */}
+          {isSyncing && (
+            <div className="sync-status syncing" title="Syncing...">
+              <FaSync className="spin" />
+            </div>
+          )}
+          {!isSyncing && syncError && (
+            <div className="sync-status error" title={`Sync Error: ${syncError}`}>
+              <FaExclamationTriangle />
+            </div>
+          )}
+          {!isSyncing && !syncError && lastSyncTime && (
+            <div className="sync-status success" title={`Last synced: ${lastSyncTime.toLocaleTimeString()}`}>
+              <FaCheck />
+            </div>
+          )}
+
           {/* Search Toggle/Input */}
           {!showSearch ? (
             <button 
