@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import { FaSave, FaArrowLeft, FaCheck, FaInfoCircle, FaFolder } from 'react-icons/fa';
+import { FaSave, FaArrowLeft, FaCheck, FaInfoCircle, FaFolder, FaSync, FaDownload } from 'react-icons/fa';
 import '../App.css';
 import './SettingsPage.css';
 
-const SettingsPage = ({ folders = [], defaultFolder, theme, onSaveSettings, onBack }) => {
+const SettingsPage = ({ folders = [], defaultFolder, theme, onSaveSettings, onBack, onPullFromGitHub }) => {
   const [selectedFolder, setSelectedFolder] = useState(defaultFolder || '');
   const [selectedTheme, setSelectedTheme] = useState(theme || 'light');
   const [localSavePath, setLocalSavePath] = useState('');
@@ -21,6 +21,8 @@ const SettingsPage = ({ folders = [], defaultFolder, theme, onSaveSettings, onBa
   const [githubSyncMode, setGithubSyncMode] = useState('json');
   
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [pullStatus, setPullStatus] = useState(null); // null, 'loading', 'success', 'error'
+  const [pullMessage, setPullMessage] = useState('');
 
   useEffect(() => {
     // Load settings from storage
@@ -95,6 +97,33 @@ const SettingsPage = ({ folders = [], defaultFolder, theme, onSaveSettings, onBa
       onSaveSettings(settings);
     } catch (error) {
       console.error('Error saving settings:', error);
+    }
+  };
+
+  const handlePull = async () => {
+    if (!confirm('Warning: This will overwrite your local notes with data from GitHub. Any unsynced local changes may be lost. Continue?')) {
+      return;
+    }
+    
+    setPullStatus('loading');
+    setPullMessage('Downloading from GitHub...');
+    
+    try {
+      const result = await onPullFromGitHub();
+      if (result.success) {
+        setPullStatus('success');
+        setPullMessage(result.message || 'Restored successfully!');
+        setTimeout(() => {
+          setPullStatus(null);
+          setPullMessage('');
+        }, 3000);
+      } else {
+        setPullStatus('error');
+        setPullMessage(result.error || 'Failed to pull.');
+      }
+    } catch (e) {
+      setPullStatus('error');
+      setPullMessage(e.message);
     }
   };
 
@@ -336,6 +365,34 @@ const SettingsPage = ({ folders = [], defaultFolder, theme, onSaveSettings, onBa
                 <option value="markdown">Individual Files (Markdown)</option>
               </select>
             </div>
+          </div>
+
+          <div className="setting-item">
+            <div className="setting-info">
+              <label>Restore Data</label>
+              <p className="setting-desc">Download notes from GitHub (Overwrites local)</p>
+            </div>
+            <div className="setting-control">
+              <button 
+                className="secondary-btn" 
+                onClick={handlePull}
+                disabled={pullStatus === 'loading'}
+              >
+                {pullStatus === 'loading' ? <FaSync className="spin" /> : <FaDownload />}
+                <span>{pullStatus === 'loading' ? 'Pulling...' : 'Pull from GitHub'}</span>
+              </button>
+            </div>
+            {pullMessage && (
+              <div className={`pull-message ${pullStatus}`} style={{ 
+                marginTop: '8px', 
+                fontSize: '12px', 
+                color: pullStatus === 'error' ? 'var(--status-danger)' : 'var(--status-success)',
+                width: '100%',
+                textAlign: 'right' 
+              }}>
+                {pullMessage}
+              </div>
+            )}
           </div>
         </div>
 

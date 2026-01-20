@@ -29,7 +29,9 @@ function App() {
       notesState.folders, 
       notesState.selectedNote, 
       notesState.handleCreateNote, 
-      settingsState.settings.defaultFolder
+      settingsState.settings.defaultFolder,
+      notesState.setNotes, // Pass setter for pull
+      notesState.setFolders // Pass setter for pull
     );
     
     // Auto-sync hook
@@ -185,6 +187,7 @@ function App() {
           uiState.setView('main');
         }}
         onBack={() => uiState.setView('main')}
+        onPullFromGitHub={fileOpsState.pullFromGitHub}
       />
     ) : uiState.view === 'all-notes' ? (
       <AllNotesView

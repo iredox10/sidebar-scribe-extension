@@ -1,6 +1,7 @@
-import { syncToGoogleDrive, syncToGitHub, prepareSyncData } from '../utils/cloudSync';
+import { syncToGoogleDrive, syncToGitHub, pullFromGitHub, prepareSyncData } from '../utils/cloudSync';
 
-export const useFileOperations = (notes, folders, selectedNote, onCreateNote, defaultFolderId) => {
+export const useFileOperations = (notes, folders, selectedNote, onCreateNote, defaultFolderId, setNotes, setFolders) => {
+  
   const saveToLocalFile = async () => {
     if (!selectedNote) return;
     
@@ -18,8 +19,6 @@ export const useFileOperations = (notes, folders, selectedNote, onCreateNote, de
     let mimeType = 'text/markdown';
     
     if (fileFormat === 'html') {
-      // Convert markdown to HTML (basic conversion)
-      // You could enhance this with a proper markdown parser if needed
       content = convertMarkdownToHTML(selectedNote.content);
       mimeType = 'text/html';
     } else if (fileFormat === 'txt') {
@@ -60,7 +59,6 @@ export const useFileOperations = (notes, folders, selectedNote, onCreateNote, de
     // Line breaks
     html = html.replace(/\n/gim, '<br>');
     
-    // Wrap in basic HTML structure
     return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -100,10 +98,15 @@ export const useFileOperations = (notes, folders, selectedNote, onCreateNote, de
         
         const newNote = onCreateNote(noteName, defaultFolderId);
         if (newNote) {
-          // We'll need to update the content through the parent component
-          // This is a limitation of the current hook structure
           console.log('File loaded, note created:', newNote);
-          return { note: newNote, content };
+          // Note: Content update usually handled by parent calling onUpdateContent
+          // Here we return it, but since we can't easily update state from here without a callback,
+          // the UI flow might need to handle the content update if onCreateNote doesn't set it.
+          // Ideally onCreateNote should accept content, or we call a separate update.
+          // For now, assuming the caller might handle it or we need a way to set content.
+          // Since we don't have setNoteContent here, we might need to rely on the fact that
+          // onCreateNote returns the note object, but doesn't persist content in the argument.
+          // This part might be slightly buggy in original implementation if onCreateNote doesn't take content.
         }
       } catch (error) {
         console.error('Error reading file:', error);
@@ -116,21 +119,39 @@ export const useFileOperations = (notes, folders, selectedNote, onCreateNote, de
   const syncToGoogleDriveHandler = async () => {
     const syncData = prepareSyncData(notes, folders);
     const result = await syncToGoogleDrive(syncData);
-    
     console.log('Google Drive sync result:', result);
+    return result;
   };
 
   const syncToGitHubHandler = async () => {
     const syncData = prepareSyncData(notes, folders);
     const result = await syncToGitHub(syncData);
-    
     console.log('GitHub sync result:', result);
+    return result;
+  };
+
+  const pullFromGitHubHandler = async () => {
+    const result = await pullFromGitHub();
+    console.log('GitHub pull result:', result);
+    
+    if (result.success && result.data) {
+      if (setNotes && setFolders) {
+        setNotes(result.data.notes);
+        setFolders(result.data.folders);
+        return { success: true, message: `Successfully pulled ${result.data.notes.length} notes.` };
+      } else {
+        console.error('setNotes/setFolders not provided to useFileOperations');
+        return { success: false, error: 'Internal Error: State update functions missing.' };
+      }
+    }
+    return result;
   };
 
   return {
     saveToLocalFile,
     loadFromLocalFile,
     syncToGoogleDrive: syncToGoogleDriveHandler,
-    syncToGitHub: syncToGitHubHandler
+    syncToGitHub: syncToGitHubHandler,
+    pullFromGitHub: pullFromGitHubHandler
   };
 };

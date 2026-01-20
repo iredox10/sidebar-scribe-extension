@@ -1,32 +1,3 @@
-// src/utils/cloudSync.js
-
-// Helper to get GitHub config from storage
-const getGitHubConfig = async () => {
-  const result = await chrome.storage.local.get([
-    'githubToken',
-    'githubRepo',
-    'githubBranch',
-    'githubSyncMode'
-  ]);
-  
-  if (!result.githubToken || !result.githubRepo) {
-    throw new Error('GitHub configuration missing. Please check Settings.');
-  }
-
-  // Basic validation for repo format (username/repo)
-  const repo = result.githubRepo.trim();
-  if (!repo.includes('/') || repo.includes('github.com')) {
-    throw new Error('Invalid Repository format. Use "username/repo" (e.g., "johndoe/notes").');
-  }
-  
-  return {
-    token: result.githubToken.trim(),
-    repo: repo,
-    branch: result.githubBranch ? result.githubBranch.trim() : 'main',
-    mode: result.githubSyncMode || 'json'
-  };
-};
-
 // Generic GitHub API Request
 const githubRequest = async (endpoint, method, body, token) => {
   const url = `https://api.github.com${endpoint}`;
@@ -83,9 +54,186 @@ const githubRequest = async (endpoint, method, body, token) => {
   }
 };
 
+// ... (Rest of file unchanged, but re-writing to inject the pull function)
+
 // ----------------------------------------------------------------------
-// JSON Sync Implementation
+// Pull Implementation
 // ----------------------------------------------------------------------
+
+const pullJsonMode = async (config) => {
+  const filePath = 'sidebar-notes-data.json';
+  
+  try {
+    const fileData = await githubRequest(
+      `/repos/${config.repo}/contents/${filePath}?ref=${config.branch}`, 
+      'GET', 
+      null, 
+      config.token
+    );
+    
+    // Decode content
+    const content = decodeURIComponent(escape(atob(fileData.content)));
+    const data = JSON.parse(content);
+    
+    return {
+      success: true,
+      data: {
+        notes: data.notes || [],
+        folders: data.folders || []
+      }
+    };
+  } catch (error) {
+    if (error.status === 404) {
+      throw new Error('Backup file not found in repository.');
+    }
+    throw error;
+  }
+};
+
+const pullMarkdownMode = async (config) => {
+  const { token, repo, branch } = config;
+  
+  // 1. Get Tree (recursive)
+  // We need to find the latest commit -> tree first
+  const refData = await githubRequest(
+    `/repos/${repo}/git/ref/heads/${branch}`, 
+    'GET', 
+    null, 
+    token
+  );
+  const latestCommitSha = refData.object.sha;
+  
+  const treeData = await githubRequest(
+    `/repos/${repo}/git/trees/${latestCommitSha}?recursive=1`, 
+    'GET', 
+    null, 
+    token
+  );
+  
+  const notes = [];
+  const folders = []; // We will rebuild folders from paths
+  const folderMap = new Map(); // path -> folderId
+  
+  // Helper to get/create folder ID
+  const getFolderId = (path) => {
+    if (!path) return null;
+    if (folderMap.has(path)) return folderMap.get(path);
+    
+    // Create new folder placeholder
+    const newId = Date.now().toString() + Math.random().toString(36).substr(2, 5);
+    const folderName = path.split('/').pop(); // Last part of path
+    
+    const newFolder = {
+      id: newId,
+      name: folderName,
+      createdAt: new Date().toISOString()
+    };
+    
+    folders.push(newFolder);
+    folderMap.set(path, newId);
+    return newId;
+  };
+
+  // 2. Iterate Tree
+  for (const item of treeData.tree) {
+    if (item.type === 'blob' && item.path.endsWith('.md')) {
+      if (item.path === 'README.md') continue; // Skip README
+      
+      // Fetch content
+      const blobData = await githubRequest(
+        item.url.replace('https://api.github.com', ''), // item.url is full URL
+        'GET',
+        null,
+        token
+      );
+      
+      const content = decodeURIComponent(escape(atob(blobData.content)));
+      
+      // Parse Path for Folder
+      const pathParts = item.path.split('/');
+      const fileName = pathParts.pop().replace('.md', '');
+      const folderPath = pathParts.join('/'); // "folder/subfolder"
+      
+      const folderId = folderPath ? getFolderId(folderPath) : null;
+      
+      notes.push({
+        id: Date.now().toString() + Math.random().toString(36).substr(2, 5), // Generate new ID
+        name: fileName,
+        content: content,
+        folderId: folderId,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
+    }
+  }
+  
+  return {
+    success: true,
+    data: { notes, folders }
+  };
+};
+
+// ----------------------------------------------------------------------
+// Main Export
+// ----------------------------------------------------------------------
+
+export const syncToGitHub = async (notes, folders) => {
+  try {
+    const config = await getGitHubConfig();
+    
+    if (config.mode === 'markdown') {
+      return await syncMarkdownMode(notes, folders, config);
+    } else {
+      return await syncJsonMode(notes, folders, config);
+    }
+  } catch (error) {
+    console.error('GitHub Sync Error:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+export const pullFromGitHub = async () => {
+  try {
+    const config = await getGitHubConfig();
+    
+    if (config.mode === 'markdown') {
+      return await pullMarkdownMode(config);
+    } else {
+      return await pullJsonMode(config);
+    }
+  } catch (error) {
+    console.error('GitHub Pull Error:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+// ... (Helper exports)
+// Helper to get GitHub config from storage
+const getGitHubConfig = async () => {
+  const result = await chrome.storage.local.get([
+    'githubToken',
+    'githubRepo',
+    'githubBranch',
+    'githubSyncMode'
+  ]);
+  
+  if (!result.githubToken || !result.githubRepo) {
+    throw new Error('GitHub configuration missing. Please check Settings.');
+  }
+
+  // Basic validation for repo format (username/repo)
+  const repo = result.githubRepo.trim();
+  if (!repo.includes('/') || repo.includes('github.com')) {
+    throw new Error('Invalid Repository format. Use "username/repo" (e.g., "johndoe/notes").');
+  }
+  
+  return {
+    token: result.githubToken.trim(),
+    repo: repo,
+    branch: result.githubBranch ? result.githubBranch.trim() : 'main',
+    mode: result.githubSyncMode || 'json'
+  };
+};
 
 const syncJsonMode = async (notes, folders, config) => {
   const filePath = 'sidebar-notes-data.json';
@@ -132,10 +280,6 @@ const syncJsonMode = async (notes, folders, config) => {
   
   return { success: true, message: 'JSON backup synced successfully' };
 };
-
-// ----------------------------------------------------------------------
-// Markdown Sync Implementation (Git Database API)
-// ----------------------------------------------------------------------
 
 const syncMarkdownMode = async (notes, folders, config) => {
   const { token, repo, branch } = config;
@@ -275,25 +419,6 @@ const syncMarkdownMode = async (notes, folders, config) => {
   }
 
   return { success: true, message: 'Markdown files synced successfully' };
-};
-
-// ----------------------------------------------------------------------
-// Main Export
-// ----------------------------------------------------------------------
-
-export const syncToGitHub = async (notes, folders) => {
-  try {
-    const config = await getGitHubConfig();
-    
-    if (config.mode === 'markdown') {
-      return await syncMarkdownMode(notes, folders, config);
-    } else {
-      return await syncJsonMode(notes, folders, config);
-    }
-  } catch (error) {
-    console.error('GitHub Sync Error:', error);
-    return { success: false, error: error.message };
-  }
 };
 
 export const syncToGoogleDrive = async () => {
