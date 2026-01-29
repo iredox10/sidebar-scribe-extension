@@ -8,7 +8,8 @@
     "storage",
     "identity",
     "contextMenus",
-    "downloads"
+    "downloads",
+    "activeTab"
   ],
   "host_permissions": [
     "https://www.googleapis.com/*",
@@ -21,6 +22,13 @@
       "https://www.googleapis.com/auth/drive.file"
     ]
   },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_end"
+    }
+  ],
   "action": {
     "default_title": "Sidebar Note"
   },

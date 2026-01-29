@@ -9,11 +9,15 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: './index.html',
-        'service-worker': './src/service-worker.js'
+        'service-worker': './src/service-worker.js',
+        'content': './src/content.js'
       },
       output: {
         entryFileNames: chunkInfo => {
-          return chunkInfo.name === 'service-worker' ? '[name].js' : 'assets/[name].js';
+          if (chunkInfo.name === 'service-worker' || chunkInfo.name === 'content') {
+            return '[name].js';
+          }
+          return 'assets/[name].js';
         },
         chunkFileNames: 'assets/[name].js',
         assetFileNames: 'assets/[name].[ext]'
