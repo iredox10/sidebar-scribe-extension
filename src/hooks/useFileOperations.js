@@ -1,4 +1,5 @@
 import { syncToGoogleDrive, syncToGitHub, pullFromGitHub, prepareSyncData } from '../utils/cloudSync';
+import { htmlToMarkdown } from '../utils/noteOperations';
 
 export const useFileOperations = (notes, folders, selectedNote, onCreateNote, defaultFolderId, setNotes, setFolders) => {
   
@@ -150,26 +151,56 @@ export const useFileOperations = (notes, folders, selectedNote, onCreateNote, de
   const exportToObsidian = async () => {
     if (!selectedNote) return;
     
-    // Create the Obsidian URI
-    // Format: obsidian://new?name=my%20note&content=my%20content
-    // We encodeURIComponent to ensure special characters are handled
-    const encodedName = encodeURIComponent(selectedNote.name);
-    const encodedContent = encodeURIComponent(selectedNote.content || '');
+    // 1. Sanitize Filename
+    // Obsidian (and OS filesystems) don't like special chars in filenames
+    const safeName = selectedNote.name.replace(/[\\/:*?"<>|]/g, '-').trim();
     
+    // 2. Convert HTML to Markdown
+    const markdownContent = htmlToMarkdown(selectedNote.content || '');
+    
+    const encodedName = encodeURIComponent(safeName);
+    const encodedContent = encodeURIComponent(markdownContent);
+    
+    // 3. Check Length Limit
+    // We increased the limit to 6000 to handle larger notes automatically.
+    // Most OSs handle ~32k, but we keep a safety buffer.
+    if (encodedContent.length > 6000) {
+      try {
+        await navigator.clipboard.writeText(markdownContent);
+        
+        const obsidianUrl = `obsidian://new?name=${encodedName}`;
+        
+        // Open active tab to ensure focus
+        const tab = await chrome.tabs.create({ url: obsidianUrl, active: true });
+        
+        // Alert the user explaining WHY they need to paste
+        alert(`Note is too long for automatic transfer (System Limit).\n\nWe copied the text to your clipboard.\nObsidian will open '${safeName}' - just press Ctrl+V to paste.`);
+        
+        setTimeout(() => chrome.tabs.remove(tab.id).catch(() => {}), 2000);
+      } catch (e) {
+        console.error("Clipboard export failed:", e);
+        alert("Export failed. Content too large and clipboard access denied.");
+      }
+      return;
+    }
+
+    // 4. Standard Export
     const obsidianUrl = `obsidian://new?name=${encodedName}&content=${encodedContent}`;
     
-    // Open the URL
-    // We create a hidden link and click it, similar to download
-    const a = document.createElement('a');
-    a.href = obsidianUrl;
-    a.style.display = 'none';
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(() => {
-      document.body.removeChild(a);
-    }, 100);
-    
-    console.log('Opened in Obsidian:', selectedNote.name);
+    try {
+      // Must be active: true for protocol handlers to work reliably in some browser versions
+      const tab = await chrome.tabs.create({ url: obsidianUrl, active: true });
+      
+      // Give it time to hand off to the OS before closing
+      setTimeout(() => {
+        chrome.tabs.remove(tab.id).catch(() => {}); 
+      }, 2000);
+      
+      console.log('Opened in Obsidian:', safeName);
+    } catch (e) {
+      console.error("Failed to open Obsidian URI:", e);
+      alert("Could not open Obsidian.");
+    }
   };
 
   return {
