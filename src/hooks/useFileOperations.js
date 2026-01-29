@@ -147,11 +147,37 @@ export const useFileOperations = (notes, folders, selectedNote, onCreateNote, de
     return result;
   };
 
+  const exportToObsidian = async () => {
+    if (!selectedNote) return;
+    
+    // Create the Obsidian URI
+    // Format: obsidian://new?name=my%20note&content=my%20content
+    // We encodeURIComponent to ensure special characters are handled
+    const encodedName = encodeURIComponent(selectedNote.name);
+    const encodedContent = encodeURIComponent(selectedNote.content || '');
+    
+    const obsidianUrl = `obsidian://new?name=${encodedName}&content=${encodedContent}`;
+    
+    // Open the URL
+    // We create a hidden link and click it, similar to download
+    const a = document.createElement('a');
+    a.href = obsidianUrl;
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      document.body.removeChild(a);
+    }, 100);
+    
+    console.log('Opened in Obsidian:', selectedNote.name);
+  };
+
   return {
     saveToLocalFile,
     loadFromLocalFile,
     syncToGoogleDrive: syncToGoogleDriveHandler,
     syncToGitHub: syncToGitHubHandler,
-    pullFromGitHub: pullFromGitHubHandler
+    pullFromGitHub: pullFromGitHubHandler,
+    exportToObsidian // Export the new function
   };
 };

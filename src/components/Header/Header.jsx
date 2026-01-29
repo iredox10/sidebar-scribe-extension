@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { 
-  FaBars, FaSearch, FaFileAlt, FaStar, FaRegStar, FaEllipsisH
+  FaBars, FaSearch, FaFileAlt, FaStar, FaRegStar, FaEllipsisH, FaSync, FaCheck, FaExclamationCircle
 } from 'react-icons/fa';
 import SearchContainer from './SearchContainer';
 import MoreActionsDropdown from './MoreActionsDropdown';
@@ -28,7 +28,9 @@ const Header = ({
   onToggleFloatingMode,
   isSyncing,
   syncError,
-  lastSyncTime
+  lastSyncTime,
+  onManualSync, // New Prop
+  onExportToObsidian // New Prop
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearch, setShowSearch] = useState(false);
@@ -87,17 +89,20 @@ const Header = ({
 
       {/* Right Section: Actions */}
       <div className="header-right">
-        {/* Sync Status - Minimal Indicator */}
+        {/* Sync Status - Interactive */}
         <div className="status-area">
-          {isSyncing && (
-            <div className="status-dot syncing" title="Syncing..." />
-          )}
-          {!isSyncing && syncError && (
-            <div className="status-dot error" title={`Sync Error: ${syncError}`} />
-          )}
-          {!isSyncing && !syncError && lastSyncTime && (
-            <div className="status-dot success" title={`Synced: ${lastSyncTime.toLocaleTimeString()}`} />
-          )}
+           <button 
+             className={`status-btn ${isSyncing ? 'spinning' : ''} ${syncError ? 'error' : 'success'}`}
+             onClick={onManualSync}
+             title={
+               isSyncing ? 'Syncing...' : 
+               syncError ? `Error: ${syncError} (Click to retry)` : 
+               `Last synced: ${lastSyncTime ? lastSyncTime.toLocaleTimeString() : 'Never'} (Click to sync)`
+             }
+             disabled={isSyncing}
+           >
+             {isSyncing ? <FaSync /> : syncError ? <FaExclamationCircle /> : <FaSync style={{opacity: lastSyncTime ? 0.7 : 0.4}} />}
+           </button>
         </div>
 
         {/* Search */}
@@ -166,6 +171,7 @@ const Header = ({
             selectedNote={selectedNote}
             isFloatingMode={isFloatingMode}
             onToggleFloatingMode={onToggleFloatingMode}
+            onExportToObsidian={onExportToObsidian}
           />
         </div>
       </div>

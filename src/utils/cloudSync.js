@@ -177,6 +177,33 @@ const pullMarkdownMode = async (config) => {
 // Main Export
 // ----------------------------------------------------------------------
 
+// ----------------------------------------------------------------------
+// Test Connection
+// ----------------------------------------------------------------------
+
+export const testGitHubConnection = async (token, repo) => {
+  try {
+    // We try to fetch the repo details
+    const data = await githubRequest(
+      `/repos/${repo}`, 
+      'GET', 
+      null, 
+      token
+    );
+    
+    return {
+      success: true,
+      message: `Connected to ${data.full_name} (${data.private ? 'Private' : 'Public'})`,
+      permissions: data.permissions
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+};
+
 export const syncToGitHub = async (notes, folders) => {
   try {
     const config = await getGitHubConfig();

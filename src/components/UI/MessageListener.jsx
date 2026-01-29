@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 
 const MessageListener = ({ 
   onCreateNoteFromSelection,
@@ -6,8 +6,30 @@ const MessageListener = ({
   currentNote,
   defaultFolderId 
 }) => {
+  // Track processed message IDs to prevent duplicates
+  const processedMessageIds = useRef(new Set());
+
   useEffect(() => {
     const messageListener = (message, sender, sendResponse) => {
+      // 1. Acknowledge receipt immediately to prevent Service Worker from retrying
+      // This is crucial! If we don't send a response, the SW might think the delivery failed.
+      sendResponse({ received: true });
+
+      // 2. Deduplication check
+      if (message.messageId && processedMessageIds.current.has(message.messageId)) {
+        console.log(`🚫 Duplicate message ignored: ${message.messageId}`);
+        return false;
+      }
+      
+      if (message.messageId) {
+        processedMessageIds.current.add(message.messageId);
+        // Optional: clean up old IDs to prevent memory leak (though unlikely to be an issue)
+        if (processedMessageIds.current.size > 100) {
+          const it = processedMessageIds.current.values();
+          processedMessageIds.current.delete(it.next().value);
+        }
+      }
+
       // Helper to format content with source
       const formatContent = (text, sourceUrl, sourceTitle) => {
         let content = text;

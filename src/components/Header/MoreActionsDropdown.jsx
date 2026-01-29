@@ -1,7 +1,7 @@
 import React from 'react';
 import { 
   FaFile, FaFolderOpen, FaGoogleDrive, FaGithub, 
-  FaCog, FaMoon, FaSun, FaExternalLinkAlt, FaWindowRestore
+  FaCog, FaMoon, FaSun, FaExternalLinkAlt, FaWindowRestore, FaGem
 } from 'react-icons/fa';
 
 const MoreActionsDropdown = ({ 
@@ -16,12 +16,13 @@ const MoreActionsDropdown = ({
   onOpenSettings,
   selectedNote,
   isFloatingMode,
-  onToggleFloatingMode
+  onToggleFloatingMode,
+  onExportToObsidian // New prop
 }) => {
   if (!show) return null;
 
   const handleAction = (action) => {
-    action();
+    if (action) action();
     onClose();
   };
 
@@ -55,6 +56,16 @@ const MoreActionsDropdown = ({
       >
         <FaFile />
         <span>Save</span>
+      </button>
+
+      <button 
+        className="dropdown-item" 
+        onClick={() => handleAction(onExportToObsidian)}
+        title="Open in Obsidian"
+        disabled={!selectedNote}
+      >
+        <FaGem style={{ color: '#9d5bd2' }} /> {/* Obsidian purple-ish color */}
+        <span>Obsidian</span>
       </button>
       
       <button 

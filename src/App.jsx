@@ -257,6 +257,8 @@ function App() {
           isSyncing={autoSyncState.isSyncing}
           syncError={autoSyncState.syncError}
           lastSyncTime={autoSyncState.lastSyncTime}
+          onManualSync={autoSyncState.triggerSync}
+          onExportToObsidian={fileOpsState.exportToObsidian}
         />
 
         <div className="main-content">

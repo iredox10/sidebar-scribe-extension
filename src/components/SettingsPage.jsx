@@ -3,6 +3,8 @@ import { FaSave, FaArrowLeft, FaCheck, FaInfoCircle, FaFolder, FaSync, FaDownloa
 import '../App.css';
 import './SettingsPage.css';
 
+import { syncToGitHub, pullFromGitHub, testGitHubConnection } from '../utils/cloudSync';
+
 const SettingsPage = ({ folders = [], defaultFolder, theme, onSaveSettings, onBack, onPullFromGitHub }) => {
   const [selectedFolder, setSelectedFolder] = useState(defaultFolder || '');
   const [selectedTheme, setSelectedTheme] = useState(theme || 'light');
@@ -330,6 +332,36 @@ const SettingsPage = ({ folders = [], defaultFolder, theme, onSaveSettings, onBa
                 className="select-input"
               />
             </div>
+          </div>
+          
+          <div className="setting-item" style={{justifyContent: 'flex-end'}}>
+             <button 
+               className="secondary-btn" 
+               onClick={async () => {
+                 if (!githubToken || !githubRepo) {
+                   alert('Please enter both Token and Repository first.');
+                   return;
+                 }
+                 const btn = document.getElementById('test-conn-btn');
+                 const originalText = btn.innerText;
+                 btn.innerText = 'Testing...';
+                 btn.disabled = true;
+                 
+                 const result = await testGitHubConnection(githubToken, githubRepo);
+                 
+                 btn.innerText = result.success ? 'Success!' : 'Failed';
+                 setTimeout(() => {
+                    btn.innerText = originalText;
+                    btn.disabled = false;
+                 }, 3000);
+                 
+                 alert(result.success ? `✅ ${result.message}` : `❌ Connection Failed: ${result.error}`);
+               }}
+               id="test-conn-btn"
+               style={{marginTop: '-10px', fontSize: '12px', padding: '4px 12px'}}
+             >
+               Test Connection
+             </button>
           </div>
 
           <div className="setting-item">
